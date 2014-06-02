@@ -1,0 +1,71 @@
+<% # Classification: Unclassified (provisional) -%>
+#!/usr/bin/ruby
+require 'yaml'
+
+ONE_HOUR_IN_SECONDS = 60 * 60
+TWO_HOURS_IN_SECONDS = 60 * 60 * 2
+SUMMARY_YAML = "<%= @puppet_summary_location %>"
+
+$colour = "green"
+
+def set_state(run_state, message, old_messages)
+  if run_state == :error
+    $colour = 'red'
+  elsif run_state == :warn and $colour != 'red'
+    $colour = 'yellow'
+  end
+
+  old_messages += [message]
+  return run_state, old_messages
+end
+
+def error(message, old_messages = [])
+  return set_state(:error, message, old_messages)
+end
+
+def warn(message, old_messages = [])
+  return set_state(:warn, message, old_messages)
+end
+
+def notify_xymon(msg)
+  system(ENV['BB'], ENV['BBDISP'], "status #{`hostname`.strip}.puppet #{$colour} #{`date`.strip} #{msg}")
+end
+
+smry = YAML::load_file(SUMMARY_YAML)
+
+resources = smry["resources"]
+failed = resources ? resources["failed"] : 0
+num_failed = failed ? failed : 0
+
+smry_time = smry["time"]
+last_run = smry_time ? smry_time["last_run"] : nil
+last_run = last_run ? last_run : File.mtime(SUMMARY_YAML).to_i
+
+time_since_last_run = Time.now.to_i - last_run
+
+run_state = :good
+msgs = ["Puppet last ran: #{time_since_last_run/60} minutes ago"]
+
+if (time_since_last_run > ONE_HOUR_IN_SECONDS)
+  run_state, msgs = warn "Puppet may have stalled, attempting to poke it into action by writing to the listening socket", msgs
+  # write to the puppet agent as possible work-around for
+  # http://projects/puppetlabs.com/issues/12185
+  begin
+    require 'socket'
+    sock = TCPSocket.new('localhost', 8139)
+    sock.write ""
+    sock.close
+  rescue SystemCallError => sce
+    run_state, msgs = warn "Oops, writing to the local puppet agent got an error #{sce}", msgs
+  end
+
+  if (time_since_last_run > TWO_HOURS_IN_SECONDS)
+    run_state, msgs = error "Puppet no longer reporting", msgs
+  end
+end
+
+if (num_failed > 0)
+  run_state, msgs = warn "Puppet failed: #{num_failed} failure(s)", msgs
+end 
+
+notify_xymon(msgs.join("\n"))

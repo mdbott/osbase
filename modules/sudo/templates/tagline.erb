@@ -1,0 +1,4 @@
+<% # Classification: Unclassified (provisional) -%>
+<% commands.each do |c| -%>
+<%= '%' if group %><%= username + "\t" %><%= hosts %>=(<%= groups %>) <%= 'NOPASSWD: ' if ! password %><%= c %>
+<% end -%>

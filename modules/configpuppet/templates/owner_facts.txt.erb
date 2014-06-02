@@ -1,0 +1,10 @@
+<% # Classification: Unclassified (provisional) -%>
+<% if @owner_type.instance_of?(Array) -%>
+<% @owner_type.each do |cat| -%>
+<%= cat %>_owner=<%= @name %>
+<%= cat %>_owner_email=<%= @email %>
+<% end -%>
+<% else -%>
+<%= @owner_type %>_owner=<%= @name %>
+<%= @owner_type %>_owner_email=<%= @email %>
+<% end -%>

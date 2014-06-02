@@ -1,0 +1,75 @@
+<% # Classification: Unclassified (provisional) -%>
+# This file is being maintained by Puppet.
+# DO NOT EDIT
+#
+# Configure the Hobbit client settings.
+
+# You MUST set the list of Hobbit servers that this
+# client reports to.
+# It is good to use IP-adresses here instead of DNS
+# names - DNS might not work if there's a problem.
+#
+# The defaults usually suffice for the rest of this file,
+# but you can tweak the hostname that the client reports
+# data with, and the OS name used (typically needed only on
+# RHEL or RHAS servers).
+
+# CLIENTHOSTNAME=""
+# CLIENTOS="rhel3"
+
+# Environment settings for the Hobbit client.
+
+# BBDISP The IP-address used to contact the Xymon server. Default: Chosen when the Xymon client was compiled.
+BBDISP="<%= @hobbitserver %>"
+
+# BBDISPLAYS List of IP-adresses of Xymon servers. Data will be sent to all of the servers listed here. This setting is only used if BBDISP=0.0.0.0.
+BBDISPLAYS=""                   # IP of multiple Hobbit servers. BBDISP must be "0.0.0.0".
+
+CONFIGCLASS="$BBOSTYPE"         # Default configuration class for logfiles
+
+PATH="/bin:/usr/bin:/sbin:/usr/sbin:/etc"  # PATH setting for the client scripts.
+
+# You normally dont need to modify anything below here
+BBPORT="1984"                   # Portnumber where hobbitd listens
+BBHOME="$HOBBITCLIENTHOME"      # Directory for the Hobbit client files
+BB="$BBHOME/bin/bb"             # The Hobbit client "bb" utility
+BBTMP="$BBHOME/tmp"             # Where we may store temporary files.
+BBCLIENTLOGS="$BBHOME/logs"     # Where we store the client logfiles
+
+
+# The following defines a bunch of commands that BB extensions expect to be present.
+# Hobbit does not use them, but they are provided here so if you use BB extension
+# scripts, then they will hopefully run without having to do a lot of tweaking.
+
+UPTIME="/usr/bin/uptime"
+AWK="/bin/awk"
+CAT="/bin/cat"
+CP="/bin/cp"
+CUT="/bin/cut"
+DATE="/bin/date"
+EGREP="/bin/egrep"
+EXPR="/usr/bin/expr"
+FIND="/usr/bin/find"
+GREP="/bin/grep"
+HEAD="/usr/bin/head"
+ID="/usr/bin/id"
+LN="/bin/ln"
+LS="/bin/ls"
+MV="/bin/mv"
+RM="/bin/rm"
+SED="/bin/sed"
+SORT="/bin/sort"
+TAIL="/usr/bin/tail"
+TOP="/usr/bin/top"
+TOUCH="/bin/touch"
+TR="/usr/bin/tr"
+UNIQ="/usr/bin/uniq"
+WHO="/usr/bin/who"
+WC="/usr/bin/wc -l"
+WCC="/usr/bin/wc"
+# DF,DFCMD and PS are for compatibility only, NOT USED by the Hobbit client
+DF="/bin/df -Pk"
+DFCMD="/bin/df -Pk"
+PS="ps ax"
+
+MAXLINE="32768"

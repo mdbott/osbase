@@ -1,0 +1,22 @@
+<% # Classification: Unclassified (provisional) -%>
+# file managed by puppet
+global
+<% scope.lookupvar('haproxy::params::global_logfacilities').each do |facility| -%>
+	log <%= scope.lookupvar('haproxy::params::global_loghost') %> <%= facility['name'] %> <%= facility['params'] %>
+<% end -%>
+	maxconn <%= scope.lookupvar('haproxy::params::global_maxconn') %>
+<% if scope.lookupvar('haproxy::params::global_chroot') != "" -%>
+	chroot <%= scope.lookupvar('haproxy::params::global_chroot') %>
+<% end -%>
+	user <%= scope.lookupvar('haproxy::params::user') %>
+	group <%= scope.lookupvar('haproxy::params::group') %>
+<% if scope.lookupvar('haproxy::params::global_daemon') -%>
+	daemon
+<% end -%>
+<% if scope.lookupvar('haproxy::params::global_debug') -%>
+	debug
+<% end -%>
+<% if scope.lookupvar('haproxy::params::global_quiet') -%>
+	quiet
+<% end -%>
+

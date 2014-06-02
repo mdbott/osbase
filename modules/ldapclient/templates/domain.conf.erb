@@ -1,0 +1,80 @@
+<% # Classification: Unclassified (provisional) -%>
+[domain/<%= @name %>]
+id_provider = <%= @id_provider %>
+auth_provider = <%= @auth_provider %>
+chpass_provider = <%= @chpass_provider %>
+<% if @sudo_provider -%>
+sudo_provider = <%= @sudo_provider %>
+<% end -%>
+<% if @access_provider -%>
+access_provider = <%= @access_provider %>
+<% end -%>
+<% if @simple_allow_groups -%>
+simple_allow_groups = <%= @simple_allow_groups.flatten.join(',') %>
+<% end -%>
+cache_credentials = <%= @cache_credentials %>
+min_id = <%= @real_min_id %>
+entry_cache_timeout = <%= @entry_cache_timeout %>
+<% if @krb5_realm -%>
+krb5_realm = <%= @krb5_realm %>
+<% end -%>
+krb5_canonicalize = <%= @krb5_canonicalize %>
+ldap_uri = <%= @ldap_uri %>
+ldap_search_base = <%= @ldap_search_base %>
+<% if @ldap_user_search_base -%>
+ldap_user_search_base = <%= @ldap_user_search_base %>
+<% end -%>
+<% if @ldap_group_search_base -%>
+ldap_group_search_base = <%= @ldap_group_search_base %>
+<% end -%>
+<% if @ldap_netgroup_search_base -%>
+ldap_netgroup_search_base = <%= @ldap_netgroup_search_base %>
+<% end -%>
+<% if @ldap_sudo_search_base -%>
+ldap_sudo_search_base = <%= @ldap_sudo_search_base %>
+<% end -%>
+ldap_referrals = <%= @ldap_referrals %>
+enumerate = <%= @enumerate %>
+ldap_force_upper_case_realm = <%= @ldap_force_upper_case_realm %>
+ldap_schema = <%= @ldap_schema %>
+<% if @ldap_default_bind_dn -%>
+ldap_default_bind_dn = <%= @ldap_default_bind_dn %>
+<% end -%>
+ldap_default_authtok_type = <%= @ldap_default_authtok_type %>
+<% if @ldap_default_authtok -%>
+ldap_default_authtok = <%= @ldap_default_authtok %>
+<% end -%>
+ldap_id_use_start_tls = <%= @ldap_id_use_start_tls %>
+ldap_tls_reqcert = <%= @ldap_tls_reqcert %>
+<% if @ldap_chpass_update_last_change -%>
+ldap_chpass_update_last_change = <%= @ldap_chpass_update_last_change %>
+<% end -%>
+<% if @ldap_account_expire_policy -%>
+ldap_account_expire_policy = <%= @ldap_account_expire_policy %>
+<% end -%>
+<% if @ldap_tls_cacert -%>
+ldap_tls_cacert = <%= @ldap_tls_cacert %>
+<% end -%>
+<% if @ldap_tls_cacertdir -%>
+ldap_tls_cacertdir = <%= @ldap_tls_cacertdir %>
+<% end -%>
+ldap_user_object_class = <%= @ldap_user_object_class %>
+ldap_user_name = <%= @ldap_user_name %>
+ldap_user_uid_number = <%= @ldap_user_uid_number %>
+ldap_user_gid_number = <%= @ldap_user_gid_number %>
+ldap_user_gecos = <%= @ldap_user_gecos %>
+ldap_user_shell = <%= @ldap_user_shell %>
+ldap_user_home_directory = <%= @ldap_user_home_directory %>
+ldap_user_principal = <%= @ldap_user_principal %>
+ldap_group_object_class = <%= @ldap_group_object_class %>
+ldap_group_name = <%= @ldap_group_name %>
+ldap_group_gid_number = <%= @ldap_group_gid_number %>
+ldap_group_member = <%= @ldap_group_member %>
+<% if @sssdoptions -%>
+<% @sssd.sort.each do |option,value| -%>
+        <%= option %> = <%= value %>
+<% end -%>
+<% end -%>
+<% if @ldap_rfc2307_fallback_to_local_users -%>
+ldap_rfc2307_fallback_to_local_users = <%= @ldap_rfc2307_fallback_to_local_users %>
+<% end -%>

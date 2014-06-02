@@ -1,0 +1,105 @@
+<% # Classification: Unclassified (provisional) -%>
+#!/bin/bash
+#
+# buildbot-slave    Start up the puppet builtbot-slave daemon
+#
+# chkconfig: 2345 55 25
+# description: buildbot-slave starts a testing framework for puppet modules
+#
+# processname: buildslave
+
+### BEGIN INIT INFO
+# Provides: buildslave
+# Required-Start: $local_fs $network $syslog
+# Required-Stop: $local_fs $syslog
+# Should-Start: $syslog
+# Should-Stop: $network $syslog
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Start up the puppet builtbot-slave daemon
+# Description:      Conducts puppet testing with buildbot
+#		     This service starts up the builtbot-slave daemon.
+### END INIT INFO
+
+# source function library
+. /etc/rc.d/init.d/functions
+
+RETVAL=0
+prog="buildslave"
+bbbin="/usr/bin/buildslave"
+bbdir="<%= build_bot_dir %>/<%= instance_name %>/"
+lockfile=/var/lock/subsys/$prog
+
+runlevel=$(set -- $(runlevel); eval "echo \$$#" )
+
+
+start()
+{
+
+	echo -n $"Starting $prog: "
+	$bbbin start $bbdir && success || failure
+	RETVAL=$?
+	[ $RETVAL -eq 0 ] && touch $lockfile
+	echo
+	return $RETVAL
+}
+
+stop()
+{
+	echo -n $"Stopping $prog: "
+    killproc $bbbin || failure $"Stopping $prog"
+	RETVAL=$?
+	[ $RETVAL -eq 0 ] && rm -f $lockfile
+	echo
+}
+
+status()
+{
+    pgrep $prog
+    RETVAL=$?
+    echo
+    return $RETVAL
+}
+
+reload()
+{
+	echo -n $"Reloading $prog: "
+    $bbbin restart $bbdir || failure $"Reloading $prog"
+	RETVAL=$?
+	echo
+}
+
+restart() {
+	stop
+	start
+}
+
+force_reload() {
+	restart
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart)
+		restart
+		;;
+	reload)
+		reload
+		;;
+	force-reload)
+		force_reload
+		;;
+	status)
+        status
+		RETVAL=$?
+		;;
+	*)
+		echo $"Usage: $0 {start|stop|restart|reload|force-reload|condrestart|try-restart|status}"
+		RETVAL=2
+esac
+exit $RETVAL

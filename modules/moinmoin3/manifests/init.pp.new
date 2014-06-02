@@ -1,0 +1,30 @@
+# == Classification: Unclassified (provisional)
+#
+# == Class: moinmoin3
+#
+#
+# === Parameters
+#
+#
+# === Hiera
+#
+# === Examples
+#
+# include moinmoin3
+#
+# === Maintainers
+#
+# UPS
+#
+class moinmoin3 {
+
+  include httpd
+  include httpd::mod_ssl
+  include httpd::mod_wsgi
+
+  #Ensure packages are installed in the correct order
+  #Package['httpd'] -> Package['moin']
+
+  anchor {'moinmoin3::start':} -> class{'moinmion3::package':} -> class{'moinmoin3::directory':} -> class{'moinmoin3::config':} -> class{'moinmoin3::script':} -> anchor{'moinmoin3::end':}
+
+}

@@ -1,0 +1,4 @@
+<% # Classification: Unclassified (provisional) -%>
+<% shares.each do |share| -%>
+share -F nfs -o <%= share_options %> <%= share %>
+<% end -%>

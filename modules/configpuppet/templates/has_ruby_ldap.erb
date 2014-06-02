@@ -1,0 +1,9 @@
+<% # Classification: Unclassified (provisional) -%>
+<% if @operatingsystem == "Solaris" -%>
+#!/opt/csw/bin/ruby
+<% else -%>
+#!/bin/env ruby
+<% end -%>
+
+require 'puppet'
+puts "has_ruby_ldap=#{Puppet.features.ldap?}"

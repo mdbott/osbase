@@ -1,0 +1,8 @@
+<% # Classification: Unclassified (provisional) -%>
+vrrp_sync_group <%= name %> {
+  group {
+    <% members.each do |member| -%>
+       <%= member %>
+     <% end -%>
+     }
+}

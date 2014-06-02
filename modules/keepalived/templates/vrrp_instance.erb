@@ -1,0 +1,31 @@
+<% # Classification: Unclassified (provisional) -%>
+vrrp_instance <%= @name %> {
+  state <%= @kind %>
+  interface <%= @interface %>
+  virtual_router_id <%= @virtual_router_id %>
+  priority <%= @kind == 'MASTER' ? 200 : 100 %>
+  advert_int <%= @advert_int %>
+  authentication {
+    auth_type pass
+    auth_pass   <%= @password %>
+  }
+  virtual_ipaddress {
+    <%= @virtualaddresses %>
+     }
+
+   <% if @script != 'none' -%>
+track_script {
+      <%= @script %>
+   }
+   <% end -%>
+   <% if @notify_master != 'none' -%>notify_master <%= @notify_master %>
+   <% end -%>
+   <% if @notify_backup != 'none' -%>notify_backup <%= @notify_backup %>
+   <% end -%>
+   <% if @notify_fault != 'none' -%>notify_fault <%= @notify_fault %>
+   <% end -%>
+
+
+
+}
+

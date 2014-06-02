@@ -1,0 +1,4 @@
+<% # Classification: Unclassified (provisional) -%>
+<% @commands.each do |c| -%>
+<% if @linetype == "group" -%>%<% end -%><% if @linetype == "netgroup" %>+<% end -%><%= @name + "\t" %><%= @hosts %>=(<%= @groups %>) <%= 'NOPASSWD: ' if ! @password %><%= c %>
+<% end -%>

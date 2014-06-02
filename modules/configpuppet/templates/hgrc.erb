@@ -1,0 +1,10 @@
+<% # Classification: Unclassified (provisional) -%>
+[paths]
+<% @hgpaths.sort.each do |name,path| -%>
+<%= name %> = <%= path %>
+<% end -%>
+[hooks]
+changegroup = hg update >&2
+[extensions]
+mq =
+

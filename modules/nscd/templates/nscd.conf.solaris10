@@ -1,0 +1,29 @@
+<% # Classification: Unclassified (provisional) -%>
+#
+# Copyright 2007 Sun Microsystems, Inc.  All rights reserved.
+# Use is subject to license terms.
+#
+#ident  "@(#)nscd.conf  1.7     07/02/14 SMI"
+#
+
+#
+#       Currently supported cache names:
+#               audit_user, auth_attr, bootparams, ethers
+#               exec_attr, group, hosts, ipnodes, netmasks
+#               networks, passwd, printers, prof_attr, project
+#               protocols, rpc, services, tnrhdb, tnrhtp, user_attr
+#
+#       logfile                 /var/adm/nscd.log
+#       enable-cache            hosts           no
+
+        debug-level             0
+
+<% @enabledcaches.each do |cache| %>
+        positive-time-to-live   <%= cache %>      <%= @cachedefs[cache]['posttl'] %>
+        negative-time-to-live   <%= cache %>      <%= @cachedefs[cache]['negttl'] %>
+        keep-hot-count          <%= cache %>      <%= @cachedefs[cache]['hotcount'] %>
+        check-files             <%= cache %>      yes
+
+<% end -%>
+
+

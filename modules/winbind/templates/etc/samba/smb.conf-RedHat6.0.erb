@@ -1,0 +1,82 @@
+<% # Classification: Unclassified (provisional) -%>
+# smb.conf
+# SAMBA CONFIG FILE
+# This file is being maintained by Puppet.
+# DO NOT EDIT
+
+[global]
+  workgroup = <%= @addomain %>
+  password server = <%= @adservers.flatten.join(', ')%>
+  realm = <%= @kerberosrealm %>
+  netbios name = <%= @hostname %>
+  server string = Samba Server %v on %h
+  security = ADS
+  encrypt passwords = yes
+  guest account = nobody
+  log file = /var/log/samba/samba.log
+  socket options = TCP_noDELAY SO_RCVBUF=8192 SO_SNDBUF=8192
+  printcap name = /etc/printcap
+  load printers = yes
+  dns proxy = no
+  obey pam restrictions = yes
+  pam password change = yes
+  winbind separator = /
+  winbind use default domain = yes
+  idmap config * : backend = tdb
+  idmap config * : range = 60000-99999
+  idmap config <%= @addomain %>:default = yes
+  idmap config <%= @addomain %>:schema_mode = rfc2307
+  idmap config <%= @addomain %>:backend = ad
+  idmap config <%= @addomain %>:range = 500-59999
+  winbind enum users = yes
+  winbind enum groups = yes
+  winbind nested groups = yes
+  hosts allow = <%= @hostsallow.flatten.join(', ')%>
+  winbind nss info = rfc2307
+  veto files = /lost+found/
+  template homedir = /home/%U
+  template shell = /bin/bash
+#  default service = homes
+#  preload = global homes printers
+# Default share values
+  valid users = @"<%= @addomain %>/Domain Users"
+
+
+#==================
+
+;[homes]
+;  comment = Home Directory
+;  browseable = no
+;  writable = yes
+;  valid users = @"<%= @addomain %>/Domain Users"
+; read only = No
+; create mask = 0664
+; directory mask = 0775
+
+;[users]
+;  path = /home
+;  comment = All Home Directories
+;  browseable = yes
+;  writable = yes
+;  valid users = @"<%= @addomain %>/Domain Users"
+;  read list = @"<%= @addomain %>/Domain Users"
+;  write list = @"<%= @addomain %>/Domain Users"
+
+;[data]
+;  path = /data
+;  comment = Data
+;  browseable = yes
+;  writable = yes
+;  valid users = @"<%= @addomain %>/Domain Users"
+;  read list = @"<%= @addomain %>/Domain Users"
+;  write list = @"<%= @addomain %>/Domain Users"
+
+;[printers]
+;  comment = All Printers
+;  path = /var/spool/samba
+;  browseable = no
+;  guest ok = no
+;  writable = no
+;  printable = yes
+  ;public = yes
+  ;to allow user 'guest account' to print

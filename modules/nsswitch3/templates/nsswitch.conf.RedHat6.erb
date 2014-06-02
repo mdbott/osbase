@@ -1,0 +1,33 @@
+<% # Classification: Unclassified (provisional) -%>
+# This file is managed by Puppet
+# User changes will be destroyed the next time puppet runs.
+
+passwd:     <% @passwd.each do |service| %><%= service %><% if service != @passwd.last %> <% end %><% end %>
+<% if @shadow -%>
+shadow:	    <% @shadow.each do |service| %><%= service %><% if service != @shadow.last %> <% end %><% end %>
+<% end -%>
+group:      <% @group.each do |service| %><%= service %><% if service != @group.last %> <% end %><% end %>
+
+hosts:      <% @hosts.each do |service| %><%= service %><% if service != @hosts.last %> <% end %><% end %>
+
+networks:   <% @network.each do |service| %><%= service %><% if service != @network.last %> <% end %><% end %>
+protocols:  <% @protocols.each do |service| %><%= service %><% if service != @protocols.last %> <% end %><% end %>
+rpc:        <% @rpc.each do |service| %><%= service %><% if service != @rpc.last %> <% end %><% end %>
+ethers:     <% @ethers.each do |service| %><%= service %><% if service != @ethers.last %> <% end %><% end %>
+netmasks:   <% @netmasks.each do |service| %><%= service %><% if service != @netmasks.last %> <% end %><% end %>
+bootparams: <% @bootparams.each do |service| %><%= service %><% if service != @bootparams.last %> <% end %><% end %>
+publickey:  <% @publickey.each do |service| %><%= service %><% if service != @publickey.last %> <% end %><% end %>
+
+netgroup:   <% @netgroup.each do |service| %><%= service %><% if service != @netgroup.last %> <% end %><% end %>
+
+automount:  <% @automount.each do |service| %><%= service %><% if service != @automount.last %> <% end %><% end %>
+aliases:    <% @aliases.each do |service| %><%= service %><% if service != @aliases.last %> <% end %><% end %>
+
+services:   <% @services.each do |service| %><%= service %><% if service != @services.last %> <% end %><% end %>
+
+<% if @sudoers -%>
+sudoers:	<% @sudoers.each do |service| %><%= service %><% if service != @sudoers.last %> <% end %><% end %>
+<% end -%>
+printers:	<% @printers.each do |service| %><%= service %><% if service != @printers.last %> <% end %><% end %>
+
+

@@ -1,0 +1,19 @@
+<% # Classification: Unclassified (provisional) -%>
+defaults
+	log <%= scope.lookupvar('haproxy::params::defaults_log') %>
+	mode <%= scope.lookupvar('haproxy::params::defaults_mode') %>
+<% scope.lookupvar('haproxy::params::defaults_options').each do |option| -%>
+	option <%= option %>
+<% end -%>
+	retries <%= scope.lookupvar('haproxy::params::defaults_retries') %>
+	maxconn <%= scope.lookupvar('haproxy::params::defaults_maxconn') %>
+	contimeout <%= scope.lookupvar('haproxy::params::defaults_contimeout') %>
+	clitimeout <%= scope.lookupvar('haproxy::params::defaults_clitimeout') %>
+	srvtimeout <%= scope.lookupvar('haproxy::params::defaults_srvtimeout') %>
+<% if scope.lookupvar('haproxy::params::defaults_stats') -%>
+	stats enable
+	stats uri     <%= scope.lookupvar('haproxy::params::defaults_stats_uri') %>
+	stats realm   <%= scope.lookupvar('haproxy::params::defaults_stats_realm') %>
+	stats auth    <%= scope.lookupvar('haproxy::params::defaults_stats_auth_user') %>:<%= scope.lookupvar('haproxy::params::defaults_stats_auth_password') %>
+<% end -%>
+

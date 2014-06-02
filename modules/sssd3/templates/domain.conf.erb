@@ -1,0 +1,139 @@
+<% # Classification: Unclassified (provisional) -%>
+[domain/<%= @name %>]
+<% if @id_provider -%>
+id_provider = <%= @id_provider %>
+<% end -%>
+<% if @auth_provider -%>
+auth_provider = <%= @auth_provider %>
+<% end -%>
+<% if @chpass_provider -%>
+chpass_provider = <%= @chpass_provider %>
+<% end -%>
+<% if @sudo_provider -%>
+sudo_provider = <%= @sudo_provider %>
+<% end -%>
+<% if @access_provider -%>
+access_provider = <%= @access_provider %>
+<% end -%>
+<% if @simple_allow_groups -%>
+simple_allow_groups = <%= @simple_allow_groups.flatten.join(',') %>
+<% end -%>
+<% if @cache_credentials -%>
+cache_credentials = <%= @cache_credentials %>
+<% end -%>
+<% if @min_id -%>
+min_id = <%= @min_id %>
+<% end -%>
+<% if @entry_cache_timeout -%>
+entry_cache_timeout = <%= @entry_cache_timeout %>
+<% end -%>
+<% if @krb5_realm -%>
+krb5_realm = <%= @krb5_realm %>
+<% end -%>
+<% if @krb5_canonicalize -%>
+krb5_canonicalize = <%= @krb5_canonicalize %>
+<% end -%>
+<% if @ldap_uri -%>
+ldap_uri = <%= @ldap_uri %>
+<% end -%>
+<% if @ldap_search_base -%>
+ldap_search_base = <%= @ldap_search_base %>
+<% end -%>
+<% if @ldap_user_search_base -%>
+ldap_user_search_base = <%= @ldap_user_search_base %>
+<% end -%>
+<% if @ldap_group_search_base -%>
+ldap_group_search_base = <%= @ldap_group_search_base %>
+<% end -%>
+<% if @ldap_netgroup_search_base -%>
+ldap_netgroup_search_base = <%= @ldap_netgroup_search_base %>
+<% end -%>
+<% if @ldap_sudo_search_base -%>
+ldap_sudo_search_base = <%= @ldap_sudo_search_base %>
+<% end -%>
+<% if @ldap_referrals -%>
+ldap_referrals = <%= @ldap_referrals %>
+<% end -%>
+<% if @enumerate -%>
+enumerate = <%= @enumerate %>
+<% end -%>
+<% if @ldap_force_upper_case_realm -%>
+ldap_force_upper_case_realm = <%= @ldap_force_upper_case_realm %>
+<% end -%>
+<% if @ldap_schema -%>
+ldap_schema = <%= @ldap_schema %>
+<% end -%>
+<% if @ldap_default_bind_dn -%>
+ldap_default_bind_dn = <%= @ldap_default_bind_dn %>
+<% end -%>
+<% if @ldap_default_authtok_type -%>
+ldap_default_authtok_type = <%= @ldap_default_authtok_type %>
+<% end -%>
+<% if @ldap_default_authtok -%>
+ldap_default_authtok = <%= @ldap_default_authtok %>
+<% end -%>
+<% if @ldap_id_use_start_tls -%>
+ldap_id_use_start_tls = <%= @ldap_id_use_start_tls %>
+<% end -%>
+<% if @ldap_id_mapping -%>
+ldap_id_mapping = <%= @ldap_id_mapping %>
+<% end -%>
+<% if @ldap_tls_reqcert -%>
+ldap_tls_reqcert = <%= @ldap_tls_reqcert %>
+<% end -%>
+<% if @ldap_chpass_update_last_change -%>
+ldap_chpass_update_last_change = <%= @ldap_chpass_update_last_change %>
+<% end -%>
+<% if @ldap_account_expire_policy -%>
+ldap_account_expire_policy = <%= @ldap_account_expire_policy %>
+<% end -%>
+<% if @ldap_tls_cacert -%>
+ldap_tls_cacert = <%= @ldap_tls_cacert %>
+<% end -%>
+<% if @ldap_tls_cacertdir -%>
+ldap_tls_cacertdir = <%= @ldap_tls_cacertdir %>
+<% end -%>
+<% if @ldap_user_object_class -%>
+ldap_user_object_class = <%= @ldap_user_object_class %>
+<% end -%>
+<% if @ldap_user_name -%>
+ldap_user_name = <%= @ldap_user_name %>
+<% end -%>
+<% if @ldap_user_uid_number -%>
+ldap_user_uid_number = <%= @ldap_user_uid_number %>
+<% end -%>
+<% if @ldap_user_gid_number -%>
+ldap_user_gid_number = <%= @ldap_user_gid_number %>
+<% end -%>
+<% if @ldap_user_gecos -%>
+ldap_user_gecos = <%= @ldap_user_gecos %>
+<% end -%>
+<% if @ldap_user_shell -%>
+ldap_user_shell = <%= @ldap_user_shell %>
+<% end -%>
+<% if @ldap_user_home_directory -%>
+ldap_user_home_directory = <%= @ldap_user_home_directory %>
+<% end -%>
+<% if @ldap_user_principal -%>
+ldap_user_principal = <%= @ldap_user_principal %>
+<% end -%>
+<% if @ldap_group_object_class -%>
+ldap_group_object_class = <%= @ldap_group_object_class %>
+<% end -%>
+<% if @ldap_group_name -%>
+ldap_group_name = <%= @ldap_group_name %>
+<% end -%>
+<% if @ldap_group_gid_number -%>
+ldap_group_gid_number = <%= @ldap_group_gid_number %>
+<% end -%>
+<% if @ldap_group_member -%>
+ldap_group_member = <%= @ldap_group_member %>
+<% end -%>
+<% if @sssdoptions -%>
+<% @sssd.sort.each do |option,value| -%>
+        <%= option %> = <%= value %>
+<% end -%>
+<% end -%>
+<% if @ldap_rfc2307_fallback_to_local_users -%>
+ldap_rfc2307_fallback_to_local_users = <%= @ldap_rfc2307_fallback_to_local_users %>
+<% end -%>

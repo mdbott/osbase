@@ -1,0 +1,30 @@
+<% # Classification: Unclassified (provisional) -%>
+# Managed by puppet
+# File from DSDntpc10 package, 20110812 -- rxmcgar
+#
+# /etc/inet/ntp.conf
+#
+# We get our time from permit, kronos and dominion
+# (Future enhancement - turn on authentication)
+#
+<% @ntp_server_list.each do |server| -%>
+server <%= server %>
+<% end -%>
+peer clusternode1-priv prefer
+peer clusternode2-priv
+peer clusternode3-priv
+peer clusternode4-priv
+peer clusternode5-priv
+peer clusternode6-priv
+peer clusternode7-priv
+peer clusternode8-priv
+peer clusternode9-priv
+peer clusternode10-priv
+peer clusternode11-priv
+peer clusternode12-priv
+peer clusternode13-priv
+peer clusternode14-priv
+peer clusternode15-priv
+peer clusternode16-priv
+
+

@@ -1,0 +1,30 @@
+<% # Classification: Unclassified (provisional) -%>
+listen <%= @name %> <%= @ip %>:<%= @port %>
+	mode <%= @mode %>
+	balance <%= @balance %>
+<% if @maxconn != '' -%>
+	maxconn <%= @maxconn %>
+<% end -%>
+<% if @cookie -%>
+	cookie <%= @cookie_name %> <%= @cookie_options %>
+<% end -%>
+<% if @hash_type == 'manual' -%>
+<% @servers.each do |server| -%>
+	server <%= server['name'] %> <%= server['ip'] %>:<%= server['port'] || port %><% if server['maxconn'] -%> maxconn <%= server['maxconn'] %><% end -%><% if server['backup'] -%> backup <% end -%><% if @cookie -%> cookie <%= server['name'] %><% end -%><% if @server_check -%> check inter <%= @check_inter %> fall <%= @check_fall %> rise <%= @check_rise %><% end %><% if server['weight'] -%> weight <%= server['weight'] %><% end %>
+<% end -%>
+<% elsif @hash_type == 'mcollective' -%>
+<% nodes = Puppet::Util::MongoQuery.instance.find_nodes(query) -%>
+<% nodes.each do |node| -%>
+	server <%= node['facts']['hostname'] %> <%= node['facts']['ipaddress'] %>:<%= port %><% if server_maxconn != "" -%> maxconn <%= server_maxconn %><% end -%><% if cookie -%> cookie <%= node['facts']['hostname'] %><% end -%><% if server_check -%> check inter <%= @check_inter %> fall <%= @check_fall %> rise <%= @check_rise %><% end %>
+<% end -%>
+<% end -%>
+<% @options.each do |option| -%>
+	option <%= option %>
+<% end -%>
+<% if @stats -%>
+	stats enable
+	stats uri     <%= @stats_uri %>
+	stats realm   <%= @stats_realm %>
+	stats auth    <%= @stats_auth_user %>:<%= @stats_auth_password %>
+<% end -%>
+

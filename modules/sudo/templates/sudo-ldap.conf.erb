@@ -1,0 +1,5 @@
+<% # Classification: Unclassified (provisional) %>
+<% %>uri <%= @ldap_servers.map{|ldapserver| @ldapuri.to_s + ldapserver.to_s}.flatten.join(',') %>
+sudoers_base ou=SUDOERS,ou=Authorisation,<%= @base_dn %>
+timelimit 30
+TLS_CACERTDIR /etc/openldap/cacerts

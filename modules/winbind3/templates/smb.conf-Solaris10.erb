@@ -1,0 +1,53 @@
+<% # Classification: Unclassified (provisional) -%>
+# smb.conf
+# SAMBA CONFIG FILE
+# This file is being maintained by Puppet.
+# DO NOT EDIT
+
+[global]
+  netbios name = <%= hostname %>
+  workgroup = <%= ad_domain %>
+  server string = Samba Server <%= hostname %>
+  security = ADS
+  encrypt passwords = yes
+  load printers = yes
+  log level = 20
+  unix extensions = no
+  domain master = no
+  socket options = TCP_NODELAY SO_KEEPALIVE
+  log file = /var/samba/log/log.%m
+  max log size = 50
+  password server = <%= ad_servers %>
+  realm = <%= kerberos_realm %>
+# Winbind
+  idmap uid = 1000-600000
+  idmap gid = 1000-600000
+  winbind use default domain = yes
+  idmap backend = ad
+  winbind nss info = rfc2307
+  passdb backend = tdbsam
+  winbind enum users = yes
+  winbind enum groups = yes
+  winbind nested groups = yes
+  allow trusted domains = yes
+  template homedir = /home/%U
+  template shell = /bin/bash
+  dns proxy = no
+  client ntlmv2 auth = yes
+  use kerberos keytab = true
+
+#============================ Share Definitions ==============================
+[homes]
+   comment = Home Directories
+   browseable = no
+   writable = yes
+
+[printers]
+   comment = All Printers
+   path = /var/spool/samba
+   browseable = no
+   guest ok = no
+   writable = no
+   printable = yes
+
+

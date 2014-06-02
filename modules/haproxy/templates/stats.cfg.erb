@@ -1,0 +1,9 @@
+<% # Classification: Unclassified (provisional) -%>
+listen <%= @name %> <%= @ip %>:<%= @port %>
+	mode <%= @mode %>
+	stats enable
+	stats uri     <%= @stats_uri %>
+	stats realm   <%= @stats_realm %>
+	stats auth    <%= @stats_auth_user %>:<%= @stats_auth_password %>
+
+

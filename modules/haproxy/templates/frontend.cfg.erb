@@ -1,0 +1,22 @@
+<% # Classification: Unclassified (provisional) -%>
+frontend <%= name %> <%= ip %>:<%= port %>
+	mode <%= mode %>
+<% options.each do |option| -%>
+	option <%= option %>
+<% end -%>
+<% acls.each do |acl| -%>
+	acl <%= acl %>
+<% end -%>
+<% redirects.each do |redirect| -%>
+	redirect <%= redirect %>
+<% end -%>
+<% use_backends.each do |use_backend| -%>
+	use_backend <%= use_backend %>
+<% end -%>
+<% options.each do |option| -%>
+	option <%= option %>
+<% end -%>
+<% if default_backend -%>
+	default_backend <%= default_backend %>
+<% end -%>
+

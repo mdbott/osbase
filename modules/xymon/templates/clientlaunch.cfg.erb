@@ -1,0 +1,35 @@
+<% # Classification: Unclassified (provisional) -%>
+# This file is managed by Puppet
+# User changes will be destroyed the next time puppet runs.
+#
+#
+# The clientlaunch.cfg file is loaded by "xymonlaunch".
+# It controls which of the Xymon client-side modules to run,
+# (both the main client "xymonclient.sh" and any client-side
+# extensions); how often, and with which parameters, options
+# and environment variables.
+#
+# Note: On the Xymon *server* itself, this file is normally
+#       NOT used. Instead, both the client- and server-tasks
+#       are controlled by the hobbitlaunch.cfg file.
+#
+
+# msgcache is used for passive clients, that cannot connect
+# directly to the Xymon server. This is not the default
+# setup, so this task is normally disabled.
+[msgcache]
+        DISABLED
+        ENVFILE $XYMONCLIENTHOME/etc/xymonclient.cfg
+        CMD $XYMONCLIENTHOME/bin/msgcache --no-daemon --pidfile=$XYMONCLIENTLOGS/msgcache.pid
+        LOGFILE $XYMONCLIENTLOGS/msgcache.log
+
+# The main client task
+[client]
+  ENVFILE <%= @xymon_cfg_location %>
+  CMD <%= @xymon_home %>/bin/xymonclient.sh
+  LOGFILE <%= @xymon_log_file_base %>/xymonclient.log
+  INTERVAL 5m
+
+# clientlaunch.d
+directory <%= @xymon_clientlaunchd_location %>
+

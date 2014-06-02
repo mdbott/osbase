@@ -1,0 +1,23 @@
+<% # Classification: Unclassified (provisional) -%>
+# This file is being maintained by Puppet.
+# DO NOT EDIT
+
+# LDAP Defaults
+#
+
+# See ldap.conf(5) for details
+# This file should be world readable but not world writable.
+
+#BASE   dc=example,dc=com
+#URI    ldap://ldap.example.com ldap://ldap-master.example.com:666
+
+#SIZELIMIT      12
+#TIMELIMIT      15
+#DEREF          never
+#
+<% if scope.lookupvar('ldap::ldapencrypt') == "yes" -%>TLS_REQCERT demand
+<% end -%>
+TLS_CACERTDIR /etc/openldap/cacerts
+URI <%= @ldap_servers.map{|ldapserver| @ldap_uri + ldapserver}.flatten.join(',') %>
+BASE <%= @base_dn %>
+ 

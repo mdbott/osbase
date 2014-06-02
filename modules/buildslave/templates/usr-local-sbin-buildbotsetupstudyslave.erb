@@ -1,0 +1,6 @@
+<% # Classification: Unclassified (provisional) -%>
+#!/bin/bash
+cd <%= build_bot_dir %>
+/usr/bin/buildslave create-slave <%= instance_name %> <%= buildmaster %>:<%= buildmasterport %> $(hostname -s) pass
+echo 'rxmcgar <rxmcgar@dsd.defence.gov.au>' > <%= build_bot_dir %>/<%= instance_name %>/info/admin
+(uname -a; fgrep MemTotal /proc/meminfo; grep 'model name' /proc/cpuinfo |cut -d: -f2) |sed 's/^ *//' > <%= build_bot_dir %>/<%= instance_name %>/info/host

@@ -1,0 +1,14 @@
+<% # Classification: Unclassified (provisional) -%>
+volume <%= @name %>
+  type <%= @voltype %>
+<% if @options.length != 0 -%>
+<% @options.each do |option| -%>
+  option <%= option['name'] %> <%= option['value'] %>
+<% end -%>
+<% end -%>
+<% if @subvolumes.length != 0 -%>
+  subvolumes <% @subvolumes.each do |subvolume| -%><%= subvolume %> <% end -%>
+<% end -%>
+
+end-volume
+

@@ -1,0 +1,8 @@
+<% # Classification: Unclassified (provisional) -%>
+# This file is being maintained by Puppet.
+# DO NOT EDIT
+ 
+search <%= @dnssearchpath %>
+<% @nameservers.each do |nameserver| -%>
+nameserver <%= nameserver %>
+<% end -%>

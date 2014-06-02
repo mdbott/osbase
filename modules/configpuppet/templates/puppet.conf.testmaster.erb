@@ -1,0 +1,24 @@
+<% # Classification: Unclassified (provisional) -%>
+
+[agent]
+        server = <%= puppetmaster %>
+        environment = <%= puppetenv %>
+
+[main]
+    pluginsync = true
+    modulepath = $confdir/modules
+    manifest   = $confdir/manifests/site.pp
+    <% if operatingsystem == "RedHat" %>
+    rundir = /var/run/puppet
+    <% end -%>
+
+
+
+<% environmentdefs.sort.each do |environment,value| -%>
+[<%= environment %>]
+    pluginsync  = true
+    modulepath  = <%= value['path'] %>/modules
+    manifest    = <%= value['path'] %>/manifests/site.pp
+    manifestdir = <%= value['path'] %>/manifests
+
+<% end -%>

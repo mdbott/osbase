@@ -1,0 +1,40 @@
+<% # Classification: Unclassified (provisional) -%>
+
+[agent]
+        server = <%= @puppetmaster %>
+        environment = <%= @puppetenv %>
+        ca_server = <%= @puppetcaserver %>
+<% if (scope.lookupvar('configpuppet::prodmaster::caclientofself') == 'no')&&(scope.lookupvar('configpuppet::prodmaster::ca_server') == 'yes') -%>
+        ssldir = /etc/puppet/client/ssl
+<% end -%>
+[master]
+        autosign=/etc/puppet/autosign.conf
+        ssl_client_header=SSL_CLIENT_S_DN
+        ssl_client_verify_header=SSL_CLIENT_VERIFY
+        reports = store, http
+        reporturl = http://<%= @primary == 'default' ? @fqdn : @primary %>:3000/reports/upload
+        bindaddress = <%= @ipaddress %>
+<% if @certname != "default" -%>
+        certname = <%= @certname %>
+<% end -%>
+<% if scope.lookupvar('configpuppet::prodmaster::ca_server') == "no" -%>
+        ca = false
+<% end -%>
+[main]
+    pluginsync = true
+    modulepath = $confdir/modules
+    manifest   = $confdir/manifests/site.pp
+    <% if @operatingsystem == "RedHat" %>
+    rundir = /var/run/puppet
+    <% end -%>
+
+
+
+<% @environmentdefs.sort.each do |environment,value| -%>
+[<%= environment %>]
+    pluginsync  = true
+    modulepath  = <%= @environmentpath %><%= value['path'] %>/modules
+    manifest    = <%= @environmentpath %><%= value['path'] %>/manifests/site.pp
+    manifestdir = <%= @environmentpath %><%= value['path'] %>/manifests
+
+<% end -%>

@@ -1,0 +1,922 @@
+<% # Classification: Unclassified (provisional) -%>
+#!/usr/bin/perl
+#
+# scanner.pl - This is the monitoring script
+#
+# Will use the file config.xml as the monitoring config file OR
+# if you pass one arg to the script then that is used;
+#
+#   ./scanner.pl hostname.xml
+#
+# This replaces the old t3.pl. All the old subs are prefixed with OLD and replaced
+# with routines out of treecheck-include.pl
+#
+
+$fname = `uname -n`; chop $fname; $fname.=".xml";
+
+#fetch config from hobbit server
+$bb = $ENV{'BB'};
+$bbdisp = $ENV{'BBDISP'};
+system "$bb $bbdisp 'config treeview/$fname' > $fname.new" || die "unable to fetch config from $bbdisp\n";
+use File::Copy;
+move "$fname.new",$fname or die $!; #only overwrite existing config if fetch from server worked
+
+# use module
+use XML::Parser;
+use Data::Dumper;
+#
+require "<%= @xymon_home %>/ext/treecheck-defines.pl";
+require "<%= @xymon_home %>/ext/treecheck-include.pl";
+#
+$start_time = time();
+# TREECHECK
+# VERSION 0.13 (XML::Parser version)
+#
+# Do you want copious output
+$debug=0;
+#
+# Set dumpXML=1 to get data dumper to print out the whole XML hash
+$dumpXML=0;
+#
+# disable BB alerts
+$disableBB=0;
+#
+# Set du_sleep to the number of secs to sleep after running du
+# Set to 0 unless you are debugging
+$du_sleep=0;
+
+# The $subprocess_timeout is used as a max time for any du to complete
+$subprocess_timeout = 10;
+# The $total_timeout is the max time in secs that this script can run
+$total_timeout = 30;
+#
+#
+# Set the host that is generating these alerts. Used by BB
+$thishost = `uname -n`;
+chomp($thishost);
+#
+#
+# $config is where the disable_flag lives
+$config = '/etc/opt/treecheck';
+#
+# $disable_flag is a master switch to disable all checks
+$disable_flag = $config . "/disable_treecheck";
+
+if ( -f $disable_flag) {
+	print "$disable_flag exists. Aborting checks\n";
+	exit;
+}
+
+# List of possible severities for each alarm. You don't have to specify all
+# of them in the config.xml
+# NOTE: Must be in order WORST to LEAST WORST. The last one must be 'ok' to indicate green status
+@severities = ('critical', 'warn', 'clear', 'ok');
+# The BB alert can concatenate some strings to form the messages. Set the hash vars below
+# as appropriate
+$html_severity{'critical'} = '<img src=http://orion.itsupt.dsd/hobbit/gifs/red.gif>';
+$html_severity{'warn'} = '<img src=http://orion.itsupt.dsd/hobbit/gifs/yellow.gif>';
+$html_severity{'clear'} = '<img src=http://orion.itsupt.dsd/hobbit/gifs/clear.gif>';
+$html_severity{'ok'} = '<img src=http://orion.itsupt.dsd/hobbit/gifs/green.gif>';
+
+# Build a hash of the severities for fast reverse lookups
+for (my $i=0;$i<@severities;$i++) {
+	$hash_severities{$severities[$i]} = $i;
+}
+# All alerts are aggregated into one BB service alert
+$bbservice = "tree";
+
+my @aggregated_alerts;
+my $aggregated_severity = "";  # Should be the worst severity of any alert. Determines the final alert status
+
+# The state file as a prefix
+$state_prefix = "state";
+
+# Directory tree alerter
+# Paul Hayter 2009
+#
+# Uses an xml file 'config.xml' to configure what tests to do.
+#
+#
+#
+
+# create object
+#$parser = new XML::Parser( Style => 'Tree' );
+#my $tree = $parser->parsefile("config.xml");
+
+# convert XML file
+$data = &convertFileToSimpleXML($fname);
+
+
+$state_file = $state_prefix . "-" . $fname;
+$state_file =~ s/xml$/txt/;
+
+
+if ( -f $state_file) {
+   # Read in the state file. Should be the state as of 5 mins ago
+   open (S, "<" .  $state_file) or die "cannot open old state";
+   while (<S>) {
+      chomp;
+      ($mypath,$myfilecount) = split(/\|/);
+      $filecountState{$mypath} = $myfilecount;
+   }
+   close(S);
+   open (S, ">" . $state_file) or die "cannot open state file to write";
+   close(S);
+}
+
+# Just find out what it looks like if we write it out. This requires simpleXML
+#XMLout($data,outputfile=>"/tmp/data2.xml", RootName => undef );
+
+if ($dumpXML) {
+	print Dumper($data);
+}
+
+my $majorFault=0;
+
+foreach $e (@{$data->{directories}->[0]->{directory}}) {
+	my $hashref = \%{$e};
+
+	# TESTING ONLY. Make dir if not there
+	#if (! -d $e->{path}->[0]) {
+	#	system("mkdir -p  " . $e->{path}->[0]);
+	#}
+
+	undef @exclusions;
+	my @exclusions = &getExclusions($hashref);
+	my $exclusionsref = \@exclusions;
+
+	#print $e->{path}->[0], "\n";
+	if (defined $e->{path}->[0]) {
+		if (! -d $e->{path}->[0]) {
+			print "Path : " . $e->{path}->[0] . " does not exist. Skip\n";
+			next;
+		}
+	} else {
+		print "No <path> definition in <diretory> block. Skip\n";
+	}
+
+	&debugLog("");
+	&debugLog("main loop: path = " . $e->{path}->[0]);
+
+        if (defined $e->{tests}->[0]) {
+		foreach $i (keys %{$e->{tests}->[0]}) {
+			if ($i =~ /^usage$/) {
+				&debugLog("   test: usage");
+				&usageTest($hashref, $exclusionref);
+			}
+			last if ($majorFault);
+			if ($i =~ /^filetime$/) {
+				&debugLog("   test: filetime");
+				&filetimeTest($hashref, $exclusionsref);
+			}
+			last if ($majorFault);
+			if ($i =~ /^filecount$/) {
+				&debugLog("   test: filecount");
+				&filecountTest($hashref, $exclusionsref, $state_file);
+			}
+			last if ($majorFault);
+		}
+        }
+	# Check the time
+	if (time() > ($start_time+$total_timeout)) {
+		print "Total time exceeds " . $total_timeout . "\n";
+		&sendAlert($severities[0], "Runtime exceeded > " . $total_timeout . " secs. Resolve issue, then remove " . $disable_flag);
+		$majorFault=1;
+		last;
+	}
+	last if ($majorFault);
+
+
+}
+if ($majorFault) {
+	&debugLog("WARNING: Major Fault");
+	open(FLAG,">" . $disable_flag) or die "Cannot create disable flag";
+	print FLAG "Major Fault at " . localtime() . ". Fix fault, and remove this file\n";
+	close(FLAG);
+}
+# Work out runtime
+print "Total execution time = " . (time() - $start_time) . "\n" if $debug;
+# Work out if we need to send a BB alert
+my $msg = "\n";;
+if ($aggregated_severity ne '') {
+	my $i;
+	@sorted_alerts = sort { $b cmp $a } @aggregated_alerts;
+	for ($i=(@sorted_alerts-1);$i>=0;$i--) {
+		#print "agg " . $sorted_alerts[$i] . "\n";
+		$sorted_alerts[$i] =~ /^([^\|]+)\|(.*)$/;
+		my $sev_index = $1;
+		my $brief_message = $2;
+		#print "   $sev_index , $brief_message\n";
+		if ($sev_index == 0) {
+			$bbstatus = 'red';
+		} elsif ($sev_index == 1) {
+			$bbstatus = 'yellow';
+		} elsif ($sev_index == (@severities-1)) {
+			$bbstatus = 'green';
+		}
+
+		# You might need to put a <br> at the end of the line below
+		#$msg .= $html_severity{$severities[$sev_index]} . " : " . $bbstatus . " : " . $brief_message . "\n";
+		$msg .= $html_severity{$severities[$sev_index]} . $brief_message . "\n";
+		last if ($majorFault); # Only show one alert if major fault
+	}
+	print "BB aggregated severity : " . $aggregated_severity . "\n" if $debug;
+	#print "msg = $msg\n";
+	#
+	if ($aggregated_severity eq $severities[0]) {
+		$bbstatus = 'red';
+	} elsif ($aggregated_severity eq $severities[1]) {
+		$bbstatus = 'yellow';
+	}
+	&sendBBStatus($thishost . "." . $bbservice, $bbstatus, $msg);
+
+} else {
+	# The code should never get here\n";
+	# print "Should not happen. BB : Need to send a green OK status\n";
+	&sendBBStatus($thishost . "." . $bbservice, 'green', 'All OK');
+}
+
+
+
+exit;
+
+# -------------------------------------------
+# Under a <directory> stanza you can have an <exclusions> and multiple <exclude> definitions
+# Excludes are pattern matches of what to exclude. The default is BSD style glob patterns (eg. *.txt)
+# But you can also specify <exlcude type="perl">^.*\.txt$</exclude> to sepcify perl regexps
+sub OLDgetExclusions {
+	my $ref = shift;
+        my @exclusions;
+        if (defined $ref->{exclusions}->[0]) {
+                my $j=0;
+                while (defined ($ref->{exclusions}->[0]->{exclude} ->[$j])) {
+                	if (defined ($ref->{exclusions}->[0]->{exclude} ->[$j]->{type})) {
+				# Mean that the tag is like <exclude type="perl">
+				print "Mean that the tag is like <exclude type=perl \n";
+                		if ($ref->{exclusions}->[0]->{exclude} ->[$j]->{type} =~ /^perl$/) {
+                        		push (@exclusions, $ref->{exclusions}->[0]->{exclude}->[$j]->{content});
+				} else {
+					# Only other option is glob style
+                        		push (@exclusions, &glob2pat($ref->{exclusions}->[0]->{exclude}->[$j]->{content}));
+				}
+			} else {
+				# type is not defined, so the default is glob style
+                        	#print "exclude : " . $ref->{exclusions}->[0]->{exclude} ->[$j] . "\n";
+                        	push (@exclusions, &glob2pat($ref->{exclusions}->[0]->{exclude} ->[$j]));
+			}
+                        $j++;
+                }
+        }
+	return @exclusions;
+}
+
+# -------------------------
+#
+# usageTest - check disk usage in a dir
+#
+sub usageTest {
+	my $ref = shift;
+	my $exclusionsref = shift;
+	my $path = $ref->{path}->[0];
+	my $i = 0;
+	my $typeOfTest;
+	opendir (DIR, $path) or die $!;
+	# Scan dir and find oldest and newest files
+	my $count=0;
+	# counts files and dirs as an entry
+	my $total=0;
+	my $t = time();
+	while (defined (my $file = readdir(DIR))) {
+		# skip . and ..
+		next if $file =~  /^\.\.?/;
+		my $j=0;
+		my $match = 0;
+		while (defined ($exclusionsref->[$j])) {
+			#print "Check exclude: file: " . $file . ", " . $exclusionsref->[$j] . "\n";
+			if ($file =~ /$exclusionsref->[$j]/) {
+				&debugLog("   exclude: " . $file);
+				$match = 1;
+				last;
+			}
+			$j++;
+		}
+		if ($match) {
+			next;
+		}
+
+		my $last_error=0;
+		# The eval/alarm bit below is to allow us to abort a du if its taking too long
+		# Note the $subprocess_timeout is on a per du basis
+		$used = eval {
+			local $SIG{ALRM} = sub {
+				$last_error=1;
+				die "timeout";
+			};
+			alarm($subprocess_timeout);
+			$last_error=2;
+			open (DU, "du -sk " . $path . "/" . $file . "|") or die "bad du";
+			#print "1.reltime = " . (time() - $t) . "\n";
+			# The next command is where potentially a timeout will occur
+			my $line = <DU>;
+			# For debugging you might want to uncomment the sleep here
+			if ($du_sleep) {
+				system("sleep " . $du_sleep);
+			}
+			alarm(0);
+			#print "2.reltime = " . (time() - $t) . "\n";
+			close DU;
+			($used,$junk) = split (/\s+/, $line);
+			$last_error=0;
+			return $used;
+		};
+		if ($@) {
+			if ($last_error == 1) {
+				&sendAlert($severities[0], "Directory Usage timeout when checking " . $path . "/" . $file . ". All checks disabled until rectified. Remove " . $disable_flag . " when its fixed");
+				$majorFault=1;
+				return;
+			} else {
+				# Must be a path missing. This is non-critical. This error is very unlikely to occur
+				&sendAlert($severities[1], "Directory Usage issue (maybe path does not exist) when checking " . $path . "/" . $file);
+			}
+		} else {
+			# &debugLog("du worked");
+		}
+		# This time check is in the MAIN loop, but we'll also check it here as
+		# the du's may take a while
+		if (time() > ($start_time+$total_timeout)) {
+			$majorFault=1;
+			return;
+		}
+		$total+=$used;
+		# $count is probably not used
+		$count++;
+	}
+	&debugLog("   total = $total KB");
+	my $alertsTriggered=0;
+	foreach $severity (@severities) {
+		if (defined $ref->{tests}->[0]->{usage}->[0]->{$severity}) {
+			if ((defined $ref->{tests}->[0]->{usage}->[0]->{$severity}->[0]->{condition}) && (defined $ref->{tests}->[0]->{usage}->[0]->{$severity}->[0]->{threshold})) {
+				my $level =  &applyMultiplier($ref->{tests}->[0]->{usage}->[0]->{$severity}->[0]->{threshold});
+				&debugLog("   path = " . $path . ", Severity = $severity, Is the dir usage of " . $total . "KB " .  $ref->{tests}->[0]->{usage}->[0]->{$severity}->[0]->{condition} . " " . $ref->{tests}->[0]->{usage}->[0]->{$severity}->[0]->{threshold} . "?");
+				my $result = &checkUsageThreshold(($total*1000), $ref->{tests}->[0]->{usage}->[0]->{$severity}->[0]->{condition}, $level);
+				&debugLog("      result = " . $result);
+				if ($result) {
+					$alertsTriggered++;
+					&sendAlert($severity, "Usage: " . $path . " , Used " . $total . "KB is " .  $ref->{tests}->[0]->{usage}->[0]->{$severity}->[0]->{condition} . " " . $ref->{tests}->[0]->{usage}->[0]->{$severity}->[0]->{threshold});
+					# exit the severity loop once we get a hit
+					last;
+				}
+			}
+		}
+	}
+	if (! $alertsTriggered) {
+		#&sendOK("Usage: " . $path . " used space is OK");
+		&sendAlert('ok', "Disk Usage: " . $path . " , Used = " . $total . "KB");
+	}
+}
+
+# checkUsageThreshold
+#  $total is a number
+#  $condition is 'lessthan' or 'greaterthan'
+#  $threhsold is  a number to compare the $total against
+sub checkUsageThreshold {
+	my $total = shift;
+	my $condition = shift;
+	my $threshold = shift;
+	#&debugLog("   - total = $total, condition = $condition, threshold = $threshold");
+	if ($condition =~ /^lessthan$/) {
+		if ($total < $threshold) {
+			return 1;
+		} else {
+			return 0;
+		}
+	} elsif ($condition =~ /^greaterthan$/) {
+		if ($total > $threshold) {
+			return 1;
+		} else {
+			return 0;
+		}
+	}
+	return 0;
+}
+
+
+
+
+# --------------------------
+# disk usage can use a mb, gb, kb specifier. This jsut does the multiplication for you
+sub applyMultiplier {
+	my $num = shift;
+
+	# Look for a trailing k, m or g at the end and multiply
+	if ($num =~ /^(\d+)([kmg])b?$/i) {
+		my $n = $1;
+		if ($2 =~ /k/i) {
+			return ($n * 1000);
+		} elsif ($2 =~ /m/i) {
+			return ($n * 1000000);
+		} elsif ($2 =~ /g/i) {
+			return ($n * 1000000000);
+		}
+	}
+	return 0;
+
+
+}
+
+# -------------------------
+sub filecountTest {
+	my $ref = shift;
+	my $exclusionsref = shift;
+	my $state_file = shift;
+
+	my $i=0;
+	my $typeOfTest;
+	my $path = $ref->{path}->[0];
+	while (defined $ref->{tests}->[0]->{filecount}->[$i]) {
+
+		opendir (DIR, $path) or die $!;
+		my $count=0;
+		# counts files and dirs as an entry
+		while (defined (my $file = readdir(DIR))) {
+			# skip . and ..
+			next if $file =~  /^\.\.?/;
+			my $j=0;
+			my $match = 0;
+			while (defined ($exclusionsref->[$j])) {
+				#print "Check exclude: file: " . $file . ", " . $exclusionsref->[$j] . "\n";
+				if ($file =~ /$exclusionsref->[$j]/) {
+					&debugLog("   exclude: " . $file);
+					$match = 1;
+					last;
+				}
+				$j++;
+			}
+			if ($match) {
+				next;
+			}
+			$count++;
+		}
+
+	      	$filecountTestType="total";
+	 	if (defined($ref->{tests}->[0]->{filecount}->[$i]->{type})) {
+	                if ($ref->{tests}->[0]->{filecount}->[$i]->{type} =~ /^rateper5mins$/) {
+	       			$filecountTestType="rateper5mins";
+			}
+		}
+
+
+		$rate = 0;
+		if (defined($filecountState{$path})) {
+			print "OLD state = " . $filecountState{$path} . "\n" if $debug;
+			if ($filecountTestType =~ /rateper5mins/) {
+				print "compare rates. Current count = $count . Old one is $filecountState{$path} \n";
+				$rate = $count - $filecountState{$path};
+			}
+	        }
+		open (STATE, ">>" . $state_file) or die "cannot append to state file";
+	        print STATE $path . "|" . $count . "\n";
+		close (STATE);
+		my $alertsTriggered=0;
+		foreach $severity (@severities) {
+			if (defined $ref->{tests}->[0]->{filecount}->[$i]->{$severity}) {
+				if ((defined $ref->{tests}->[0]->{filecount}->[$i]->{$severity}->[0]->{condition}) && (defined $ref->{tests}->[0]->{filecount}->[$i]->{$severity}->[0]->{threshold})) {
+					&debugLog("   path = " . $path . ", Severity = $severity, Is the filecount " .  $ref->{tests}->[0]->{filecount}->[0]->{$severity}->[0]->{condition} . " " . $ref->{tests}->[0]->{filecount}->[0]->{$severity}->[0]->{threshold} . "?");
+					if ($filecountTestType =~ /rateper5mins/) {
+					   my $result = &checkFilecountThreshold($rate, $ref->{tests}->[0]->{filecount}->[$i]->{$severity}->[0]->{condition}, $ref->{tests}->[0]->{filecount}->[$i]->{$severity}->[0]->{threshold});
+					   &debugLog("      rate result = " . $result);
+					   if ($result) {
+						$alertsTriggered++;
+						&sendAlert($severity,"FilecountRate: " . $path . ", rate/5mins " . $rate . " is " . $ref->{tests}->[0]->{filecount}->[$i]->{$severity}->[0]->{condition} . " " . $ref->{tests}->[0]->{filecount}->[$i]->{$severity}->[0]->{threshold});
+						last;
+					   }
+
+					} else {
+					   my $result = &checkFilecountThreshold($count, $ref->{tests}->[0]->{filecount}->[$i]->{$severity}->[0]->{condition}, $ref->{tests}->[0]->{filecount}->[$i]->{$severity}->[0]->{threshold});
+					   &debugLog("      result = " . $result);
+					   if ($result) {
+						$alertsTriggered++;
+						&sendAlert($severity,"Filecount: " . $path . ", count " . $count . " is " . $ref->{tests}->[0]->{filecount}->[$i]->{$severity}->[0]->{condition} . " " . $ref->{tests}->[0]->{filecount}->[$i]->{$severity}->[0]->{threshold});
+						last;
+				   	   }
+					}
+				}
+			}
+		}
+		if (! $alertsTriggered) {
+			#&sendOK("Filecount: " . $path . " all OK");
+			if ($filecountTestType =~ /rateper5mins/) {
+				&sendAlert('ok',"FilecountRate: " . $path . ", rate/5mins = " . $rate);
+			} else {
+				&sendAlert('ok',"Filecount: " . $path . ", count = " . $count);
+			}
+		}
+		$i++;
+	}
+}
+
+# -------------------------
+#
+# checkFilecountThreshold
+#  $count is a number
+#  $condition is 'lessthan' or 'greaterthan'
+#  $threhsold is  a number to compare the $count against
+sub checkFilecountThreshold {
+	my $count = shift;
+	my $condition = shift;
+	my $threshold = shift;
+	if ($condition =~ /^lessthan$/) {
+		if ($count < $threshold) {
+			return 1;
+		} else {
+			return 0;
+		}
+	} elsif ($condition =~ /^greaterthan$/) {
+		if ($count > $threshold) {
+			return 1;
+		} else {
+			return 0;
+		}
+	}
+	return 0;
+}
+
+# -------------------------
+# filetimeTest. eg.
+#        <directory>
+#                <path>/prod/dir9/dir33/sections</path>
+#                <exclusions>
+#                        <exclude>*.txt</exclude>
+#                        <exclude type="perl">.*\.pl</exclude>
+#                </exclusions>
+#                <tests>
+#                        <filetime type="newestfile">
+#                                <warn condition="lessthan" threshold="now-120mins"/>
+#                                <error condition="lessthan" threshold="now-4hrs"/>
+#                                <critical condition="lessthan" threshold="now-12hrs"/>
+#                        </filetime>
+#
+#                </tests>
+#        </directory>
+
+#
+# NOTES:
+#        filetime types are either newestfile or oldestfile
+#        conditions are either lessthan or greaterthan
+#        time thresholds all must start with 'now-' to show they are relative to 'now'
+sub filetimeTest {
+	my $ref = shift;
+	my $exclusionsref = shift;
+	my $path = $ref->{path}->[0];
+	my $i = 0;
+	my $typeOfTest;
+	# You can have multiple filetime tests
+	while (defined $ref->{tests}->[0]->{filetime}->[$i]) {
+		if (defined $ref->{tests}->[0]->{filetime}->[$i]->{type}) {
+			# check if looking for newest or oldest file
+			$myTypeOfTest="";
+			if ($ref->{tests}->[0]->{filetime}->[$i]->{type} =~ /^newestfile$/) {
+				$myTypeOfTest='newest';
+			}
+			if ($ref->{tests}->[0]->{filetime}->[$i]->{type} =~ /^oldestfile$/) {
+				$myTypeOfTest='oldest';
+			}
+			if (myTypeOfTest =~ /^$/) {
+				print "dir: " . $path . ", filetime test: $i, type invalid\n";
+				next;
+			}
+			my $oldest=99999999999999999;
+			my $newest=0;
+			my $newestfile;
+			my $oldestfile;
+			opendir (DIR, $path) or die $!;
+			# Scan dir and find oldest and newest files
+			my $count=0;
+			while (defined (my $file = readdir(DIR))) {
+				# skip ..
+				next if $file =~  /^\.\.$/;
+				my $j=0;
+				my $match = 0;
+				while (defined ($exclusionsref->[$j])) {
+					#print "Check exclude: file: " . $file . ", " . $exclusionsref->[$j] . "\n";
+					if ($file =~ /$exclusionsref->[$j]/) {
+						&debugLog("   exclude: " . $file);
+						$match = 1;
+						last;
+					}
+					$j++;
+				}
+				if ($match) {
+					next;
+				}
+				my $fullpath = $path . "/" . $file;
+				if ((stat($fullpath))[9]>=$newest) {
+					$newest = (stat($fullpath))[9];
+					$newestfile = $file;
+				}
+				if ((stat($fullpath))[9]<=$oldest) {
+					$oldest = (stat($fullpath))[9];
+					$oldestfile = $file;
+				}
+				$count++;
+
+			}
+			# if there are no files, then skip
+			if ($count == 0) {
+				&sendAlert('clear', "Filetime: " . $path . " contains no files, unable to check age of " . $myTypeOfTest . " file.");
+				&debugLog("   no files that match in this path");
+				$i++;
+				next;
+			}
+			if ($newestfile ne '') {
+				&debugLog("   newest = $newestfile" . ", mtime = " . localtime($newest));
+			}
+			if ($oldestfile ne '') {
+				&debugLog("   oldest = $oldestfile" . ", mtime = " . localtime($oldest));
+			}
+
+			# We should know the oldest and newest files now. Now lets look at what we;re testing for
+			my $alertsTriggered=0;
+			foreach $severity (@severities) {
+				if (defined $ref->{tests}->[0]->{filetime}->[$i]->{$severity}) {
+					if ((defined $ref->{tests}->[0]->{filetime}->[$i]->{$severity}->[0]->{condition}) && (defined $ref->{tests}->[0]->{filetime}->[$i]->{$severity}->[0]->{threshold})) {
+						&debugLog("   path = " . $path . ", Severity = $severity, Is the " . $myTypeOfTest . " file " .  $ref->{tests}->[0]->{filetime}->[$i]->{$severity}->[0]->{condition} . " " . $ref->{tests}->[0]->{filetime}->[$i]->{$severity}->[0]->{threshold} . "?");
+						my $result = &checkTimeThreshold($myTypeOfTest,$oldest, $newest,  $ref->{tests}->[0]->{filetime}->[$i]->{$severity}->[0]->{condition}, $ref->{tests}->[0]->{filetime}->[$i]->{$severity}->[0]->{threshold});
+						&debugLog("      result = " . $result);
+						if ($result) {
+							$alertsTriggered++;
+							&sendAlert($severity, "Filetime: " . $path . " The " . $myTypeOfTest . " file is " .  $ref->{tests}->[0]->{filetime}->[$i]->{$severity}->[0]->{condition} . " " . $ref->{tests}->[0]->{filetime}->[$i]->{$severity}->[0]->{threshold});
+							last;
+						}
+					}
+				}
+			}
+			if (! $alertsTriggered) {
+				if (defined ($ref->{tests}->[0]->{filetime}->[$i]->{'warn'})) {$severity='warn'}
+				else {$severity='critical'}
+				&sendAlert('ok', "Filetime: " . $path . " The " . $myTypeOfTest . " file is NOT " .  $ref->{tests}->[0]->{filetime}->[$i]->{$severity}->[0]->{condition} . " " . $ref->{tests}->[0]->{filetime}->[$i]->{$severity}->[0]->{threshold});
+			}
+
+		}
+		$i++;
+	}
+}
+
+# ----------------------------------------
+# checkTimeThreshold
+#  myTypeOfTest = oldest|newest
+#  oldestTimestamp = unix time stamp of oldest file
+#  newestTimeStamp = uni x time stamp of newest file
+#  conditon = greaterthan|lessthan
+#  threshold = (now-(n)(secs|mins|hrs|days))
+#
+sub checkTimeThreshold {
+	my $myTypeOfTest = shift;
+	my $oldestTimestamp = shift;
+	my $newestTimestamp = shift;
+	my $condition = shift;
+	my $threshold = shift;
+
+	#print ":$myTypeOfTest:$oldestTimestamp:$newestTimestamp:$condition:$threshold:\n";
+	if ($threshold =~ /^now-(\d+\w+)$/) {
+		# time is relative to current time
+		$relativeTime = &relTime($1);
+		if ($myTypeOfTest =~ /^oldest$/) {
+			if ($condition =~ /^greaterthan$/) {
+				if ($oldestTimestamp > (time()-$relativeTime)) {
+					return 1;
+				} else {
+					return 0;
+				}
+			} elsif ($condition =~ /^lessthan$/) {
+				if ($oldestTimestamp < (time()-$relativeTime)) {
+					return 1;
+				} else {
+					return 0;
+				}
+			}
+		} elsif ($myTypeOfTest = ~ /^newest$/) {
+			if ($condition =~ /^greaterthan$/) {
+				if ($newestTimestamp > (time()-$relativeTime)) {
+					return 1;
+				} else {
+					return 0;
+				}
+			} elsif ($condition =~ /^lessthan$/) {
+				if ($newestTimestamp < (time()-$relativeTime)) {
+					return 1;
+				} else {
+					return 0;
+				}
+			}
+		}
+	} else {
+		print "ERR checkTimeThreshold: unknown time format\n";
+	}
+
+}
+
+
+# Calc unix timestamp relative to now
+#   arg can be in a multitude of forms, but is always n directly followed by a unit;
+#
+#    12secs
+#    3minutes
+#    3mins
+#    8hours
+#    6hrs
+#    2days
+sub relTime {
+	my $arg = shift;
+	$arg =~ m/^(\d+)(\w+)$/;
+	my $num = $1;
+	my $units = $2;
+
+	if ($units =~ /^sec/) {
+		return $num;
+	} elsif ($units =~ /^min/) {
+		return ($num*60);
+	} elsif (($units =~ /^hr/) || ($units =~ /^hour/)) {
+		return ($num*3600);
+	} elsif ($units =~ /^day/) {
+		return ($num*86400);
+	} else {
+		print "ERR relTime: unknown time units ($units)\n";
+	}
+}
+
+# Convert BSD glob style to perl regexp
+sub OLDglob2pat {
+    my $globstr = shift;
+    my %patmap = (
+        '*' => '.*',
+        '?' => '.',
+        '[' => '[',
+        ']' => ']',
+    );
+    $globstr =~ s{(.)} { $patmap{$1} || "\Q$1" }ge;
+    return '^' . $globstr . '$';
+}
+
+
+# -------
+sub debugLog {
+	my $arg = shift;
+	if ($debug) {
+		print "DBG: " . $arg . "\n";
+	}
+}
+
+#----------------------------
+#
+# NB: sendAlert and sendOK SHOULD end up calling sendBBStatus at some point in the future
+sub sendAlert {
+	my $severity = shift;
+	my $msg = shift;
+
+	# Work out the severity index (0 is worst)
+	$sev_index = $hash_severities{$severity};
+
+	#print "sendAlert: $severity, $msg\n";
+	push (@aggregated_alerts,$sev_index . "|" . $msg);
+
+	# The severity is passed as a string. eg 'warn'. Need to compare it
+	# against the worst severity passed in previous calls (because we
+	# aggregate alerts). ie. if we had another alert with 'warn', but a 2nd
+	# alert with 'critical', we'd want the final aggregated alarm send as
+	# 'critical'
+	my $i;
+	my $current_severity=1000;
+	my $last_severity=1000;
+	for ($i=0;$i < @severities;$i++) {
+		if ($severities[$i] eq $severity) {
+			$current_severity = $i;
+		}
+		if ($severities[$i] eq $aggregated_severity) {
+			$last_severity = $i;
+		}
+	}
+
+	&debugLog("ADD ALERT (". $severity . ") " . $msg);
+	if ($current_severity < $last_severity) {
+		$aggregated_severity = $severity;
+	}
+}
+#----------------------------
+# This will be for 'green' statuses
+# Basically just a placemarker now that alerts are aggregated.
+sub sendOK {
+	my $msg = shift;
+
+	&debugLog("sendOK: $msg");
+
+}
+#----------------------------
+
+#This routine sends a BB event, using the bb binary
+
+# $service is something like host.filetest1
+# $status is green|red etc
+# $msg is some data to spit out 'The newest file in /blah/blah is lesthan 8hrs old'
+sub sendBBStatus {
+
+        my($service) = shift;
+        my($status)  = shift;
+        my($msg)     = shift;
+
+	$msg.="<p>Thresholds are set <a href=http://orion.itsupt.dsd/private/tree-config/Foldermgr.html>here</a> on <a href=http://orion.itsupt.dsd/hobbit/>orion</a>.";
+
+	print "sendBBStatus: $service, $status, $msg\n" if $debug;
+	return if ($disableBB);
+
+        if (! $bb ) {
+                die "Could not obtain BB from environment!\n";
+        }
+
+        system($bb, $bbdisp, "status $service $status " . scalar(localtime) . " $msg");
+}
+
+
+
+sub OLDconvertToSimpleXML {
+	$tree - shift;
+	$ref = \%hash;
+
+	if ($tree->[0] ne 'directories') {
+		print "outer tag wrong\n";
+		exit;
+	}
+
+
+	for (my $i = 1;$i < @{$tree->[1]} ; $i+=2) {
+		#print "> " . $tree->[1]->[$i] . "\n";
+		if ($tree->[1]->[$i] eq 'directory') {
+			$n=0;
+			while (defined ($ref->{directories}->[0]->{directory}->[$n])) {
+				$n++;
+			}
+			#print "n = $n\n";
+			for (my $j = 1;$j < @{$tree->[1]->[$i+1]} ; $j+=2) {
+				if ($tree->[1]->[$i+1]->[$j]  eq 'path') {
+					if ($tree->[1]->[$i+1]->[$j+1]->[1] == 0) {
+						#print "path " . $tree->[1]->[$i+1]->[$j+1]->[2] . "\n";
+						$ref->{directories}->[0]->{directory}->[$n]->{path}->[0] = $tree->[1]->[$i+1]->[$j+1]->[2];
+					}
+				} elsif ($tree->[1]->[$i+1]->[$j]  eq 'exclusions') {
+					for (my $k = 1;$k < @{$tree->[1]->[$i+1]->[$j+1]} ; $k+=2) {
+						#print "EXC-- " . $tree->[1]->[$i+1]->[$j+1]->[$k] . "\n";
+						if (defined($tree->[1]->[$i+1]->[$j+1]->[$k]) && ($tree->[1]->[$i+1]->[$j+1]->[$k] eq 'exclude')) {
+							$o=0;
+							while (defined($ref->{directories}->[0]->{directory}->[$n]->{exclusions}->[0]->{exclude}->[$o])) {
+								$o++;
+							}
+							#print "o = $o\n";
+							if (defined($tree->[1]->[$i+1]->[$j+1]->[$k+1]->[0]->{type})) {
+								if ($tree->[1]->[$i+1]->[$j+1]->[$k+1]->[0]->{type} eq 'perl') {
+									$ref->{directories}->[0]->{directory}->[$n]->{exclusions}->[0]->{exclude}->[$o]->{type} = 'perl';
+									$ref->{directories}->[0]->{directory}->[$n]->{exclusions}->[0]->{exclude}->[$o]->{content} = $tree->[1]->[$i+1]->[$j+1]->[$k+1]->[2];
+
+								}
+							} else {
+								$ref->{directories}->[0]->{directory}->[$n]->{exclusions}->[0]->{exclude}->[$o] = $tree->[1]->[$i+1]->[$j+1]->[$k+1]->[2];
+							}
+						}
+					}
+				} elsif ($tree->[1]->[$i+1]->[$j]  eq 'tests') {
+					for (my $k = 1;$k < @{$tree->[1]->[$i+1]->[$j+1]} ; $k+=2) {
+						#print "-- " . $tree->[1]->[$i+1]->[$j+1]->[$k] . "\n";
+						if ($tree->[1]->[$i+1]->[$j+1]->[$k] =~ /filecount|filetime|usage/) {
+							for (my $l = 1;$l < @{$tree->[1]->[$i+1]->[$j+1]->[$k+1]} ; $l+=2) {
+								#print "xx " . $tree->[1]->[$i+1]->[$j+1]->[$k] . "-" . $tree->[1]->[$i+1]->[$j+1]->[$k+1]->[0]->{type} . "\n";
+								# look for the warn/crit bit
+								if ($tree->[1]->[$i+1]->[$j+1]->[$k+1]->[$l] =~ /^[a-z]/) {
+
+									#print "++ " . $tree->[1]->[$i+1]->[$j+1]->[$k] . "-" . $tree->[1]->[$i+1]->[$j+1]->[$k+1]->[$l] . "\n";
+									foreach $a (keys %{$tree->[1]->[$i+1]->[$j+1]->[$k+1]->[$l+1]->[0]}) {
+										#print $a  . "\n";
+										$m=0;
+										while (defined ($ref->{directories}->[0]->{directory}->[$n]->{tests}->[0]->{$tree->[1]->[$i+1]->[$j+1]->[$k]}->[$m]->{$tree->[1]->[$i+1]->[$j+1]->[$k+1]->[$l]}->[0]->{$a})) {
+											$m++;
+										}
+										$ref->{directories}->[0]->{directory}->[$n]->{tests}->[0]->{$tree->[1]->[$i+1]->[$j+1]->[$k]}->[$m]->{$tree->[1]->[$i+1]->[$j+1]->[$k+1]->[$l]}->[0]->{$a} = $tree->[1]->[$i+1]->[$j+1]->[$k+1]->[$l+1]->[0]->{$a};
+										if (defined($tree->[1]->[$i+1]->[$j+1]->[$k+1]->[0]->{type})) {
+											$ref->{directories}->[0]->{directory}->[$n]->{tests}->[0]->{$tree->[1]->[$i+1]->[$j+1]->[$k]}->[$m]->{type} = $tree->[1]->[$i+1]->[$j+1]->[$k+1]->[0]->{type};
+										}
+
+									}
+
+								}
+							}
+
+
+						}
+					}
+
+				}
+			}
+		}
+
+	}
+	return $ref;
+}
+

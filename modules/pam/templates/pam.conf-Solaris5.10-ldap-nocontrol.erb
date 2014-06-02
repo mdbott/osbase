@@ -1,0 +1,73 @@
+<% # Classification: Unclassified (provisional) -%>
+# Authentication management
+#
+# login service (explicit because of pam_dial_auth)
+#
+login	auth requisite		pam_authtok_get.so.1
+login	auth required		pam_unix_cred.so.1
+login	auth binding		pam_unix_auth.so.1 server_policy
+login	auth required		pam_ldap.so.1
+#
+# Default definitions for Authentication management
+# Used when service name is not explicitly mentioned for authentication
+#
+other	auth requisite		pam_authtok_get.so.1
+other	auth optional		pam_krb5.so.1
+other	auth binding		pam_unix_auth.so.1 server_policy
+other	auth required   	pam_ldap.so.1
+other	auth required		pam_unix_cred.so.1
+#
+# passwd command (explicit because of a different authentication module)
+#
+passwd	auth binding		pam_passwd_auth.so.1 server_policy
+passwd	auth required		pam_ldap.so.1
+#
+# cron service (explicit because of non-usage of pam_roles.so.1)
+#
+cron	account required	pam_unix_account.so.1
+#
+# Default definition for Account management
+# Used when service name is not explicitly mentioned for account management
+#
+other	account requisite	pam_roles.so.1
+other	account binding		pam_unix_account.so.1 server_policy
+other	account required	pam_ldap.so.1
+#
+# Default definition for Session management
+# Used when service name is not explicitly mentioned for session management
+#
+other	session required	pam_unix_session.so.1
+#
+# Default definition for  Password management
+# Used when service name is not explicitly mentioned for password management
+#
+other	password requisite	pam_authtok_get.so.1
+other	password requisite	pam_authtok_check.so.1
+other	password required	pam_authtok_store.so.1
+#
+#  this is to provide netgroup authentication
+sshd-pubkey account binding   pam_unix_account.so.1 server_policy
+sshd-pubkey account required  pam_ldap.so.1
+#
+# For kerberos
+sshd-gssapi account binding   pam_unix_account.so.1 server_policy
+sshd-gssapi account required  pam_ldap.so.1
+#
+#
+#
+sshd-kbdint  account requisite pam_roles.so.1
+sshd-kbdint  account required   pam_projects.so.1
+sshd-kbdint  account binding    pam_unix_account.so.1 server_policy
+sshd-kbdint  account required  pam_ldap.so.1
+#
+sshd-password  account requisite pam_roles.so.1
+sshd-password  account required  pam_projects.so.1
+sshd-password  account binding   pam_unix_account.so.1 server_policy
+sshd-password  account required  pam_ldap.so.1
+#
+# XScreenSaver
+xscreensaver auth requisite pam_authtok_get.so.1
+xscreensaver auth sufficient pam_krb5.so.1
+xscreensaver auth sufficient pam_ldap.so.1
+# Allow "root" to override a locked screen
+xscreensaver auth required pam_unix_auth.so.1

@@ -1,0 +1,17 @@
+<% # Classification: Unclassified (provisional) -%>
+# This file is being maintained by Puppet.
+# DO NOT EDIT
+
+[General]
+
+Verbosity = 0
+Pipefs-Directory = /var/lib/nfs/rpc_pipefs
+Domain = <%= @nfs4domain %>
+
+[Mapping]
+
+Nobody-User = nobody
+Nobody-Group = nobody
+
+[Translation]
+Method = nsswitch

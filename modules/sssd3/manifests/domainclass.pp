@@ -1,0 +1,112 @@
+# == Classification: Unclassified (provisional)
+#
+class sssd3::domainclass(
+  $sssd_domain = 'default',
+  $id_provider = undef,
+  $auth_provider = undef,
+  $chpass_provider = undef,
+  $sudo_provider = undef,
+  $access_provider = undef,
+  $ldap_uri = undef,
+  $ldap_search_base= undef,
+  $ldap_user_search_base=undef,
+  $ldap_group_search_base=undef,
+  $ldap_netgroup_search_base=undef,
+  $ldap_sudo_search_base=undef,
+  $krb5_realm=undef,
+
+  $ldap_default_bind_dn=undef,
+  $ldap_default_authtok=undef,
+
+  $simple_allow_groups=undef,
+
+  $ldap_user_object_class = undef,
+  $ldap_user_name = undef,
+  $ldap_user_principal = undef,
+  $ldap_user_uid_number = undef,
+  $ldap_user_gid_number = undef,
+  $ldap_user_gecos = undef,
+  $ldap_user_shell = undef,
+  $ldap_user_home_directory = undef,
+
+  $ldap_group_object_class = undef,
+  $ldap_group_name = undef,
+  $ldap_group_member = undef,
+  $ldap_group_gid_number = undef,
+
+  $ldap_id_use_start_tls = undef,
+  $ldap_id_mapping = undef,
+  $ldap_tls_reqcert = undef,
+  $ldap_tls_cacert = undef,
+  $ldap_tls_cacertdir = undef,
+  $ldap_default_authtok_type = undef,
+  $ldap_schema = undef,
+  $enumerate = undef,
+  $ldap_force_upper_case_realm = undef,
+  $ldap_referrals = undef,
+  $cache_credentials = undef,
+  $min_id = undef,
+  $entry_cache_timeout = undef,
+  $krb5_canonicalize = undef,
+  $ldap_chpass_update_last_change = undef,
+  $ldap_account_expire_policy = undef,
+  $ldap_rfc2307_fallback_to_local_users = undef
+) {
+  
+  
+  sssd3::domain { $sssd_domain:
+  id_provider => $id_provider,
+  auth_provider => $auth_provider,
+  chpass_provider => $chpass_provider,
+  sudo_provider => $sudo_provider,
+  access_provider => $access_provider,
+  ldap_uri => $ldap_uri,  
+  ldap_search_base => $ldap_search_base,
+  ldap_user_search_base=>$ldap_user_search_base ? {
+                          "undef"  => undef,
+                          default => $ldap_user_search_base
+                         },
+  ldap_group_search_base=>$ldap_group_search_base ? {
+                          "undef"  => undef,
+                          default => $ldap_group_search_base
+                         },
+  ldap_netgroup_search_base=>$ldap_netgroup_search_base ? {
+                          "undef"  => undef,
+                          default => $ldap_netgroup_search_base
+                         },
+  ldap_sudo_search_base=>$ldap_sudo_search_base, 
+  krb5_realm=>$krb5_realm,
+  ldap_default_bind_dn=>$ldap_default_bind_dn,
+  ldap_default_authtok=>$ldap_default_authtok,
+  simple_allow_groups=>$simple_allow_groups,
+  ldap_user_object_class => $ldap_user_object_class,
+  ldap_user_name => $ldap_user_name,
+  ldap_user_principal => $ldap_user_principal,
+  ldap_user_uid_number => $ldap_user_uid_number,
+  ldap_user_gid_number => $ldap_user_gid_number,
+  ldap_user_gecos => $ldap_user_gecos,
+  ldap_user_shell => $ldap_user_shell,
+  ldap_user_home_directory => $ldap_user_home_directory,
+  ldap_group_object_class => $ldap_group_object_class,
+  ldap_group_name => $ldap_group_name,
+  ldap_group_member => $ldap_group_member,
+  ldap_group_gid_number => $ldap_group_gid_number,
+  ldap_id_use_start_tls => $ldap_id_use_start_tls,
+  ldap_id_mapping => $ldap_id_mapping,
+  ldap_tls_reqcert => $ldap_tls_reqcert,
+  ldap_tls_cacert => $ldap_tls_cacert,
+  ldap_tls_cacertdir => $ldap_tls_cacertdir,
+  ldap_default_authtok_type => $ldap_default_authtok_type,
+  ldap_schema => $ldap_schema,
+  enumerate => $enumerate,
+  ldap_force_upper_case_realm => $ldap_force_upper_case_realm,
+  ldap_referrals => $ldap_referrals,
+  cache_credentials => $cache_credentials,
+  min_id => $min_id,
+  entry_cache_timeout => $entry_cache_timeout,
+  krb5_canonicalize => $krb5_canonicalize,
+  ldap_chpass_update_last_change => $ldap_chpass_update_last_change,
+  ldap_account_expire_policy => $ldap_account_expire_policy,
+  ldap_rfc2307_fallback_to_local_users => $ldap_rfc2307_fallback_to_local_users,
+}
+}

@@ -1,0 +1,42 @@
+<% # Classification: Unclassified (provisional) -%>
+# krb5.conf
+# KERBEROS CONFIG FILE
+# This file is being maintained by Puppet.
+# DO NOT EDIT
+
+[libdefaults]
+ ticket_lifetime = 24000
+ default_realm = <%= @kerberosrealm %>
+ default_tgs_enctypes = arcfour-hmac-md5 arcfour-hmac-md5-exp aes128-cts-hmac-sha1-96 aes256-cts-hmac-sha1-96
+ default_tkt_enctypes = arcfour-hmac-md5 arcfour-hmac-md5-exp aes128-cts-hmac-sha1-96 aes256-cts-hmac-sha1-96
+ permitted_enctypes   = arcfour-hmac-md5 arcfour-hmac-md5-exp aes128-cts-hmac-sha1-96 aes256-cts-hmac-sha1-96
+ dns_fallback = yes
+ forwardable = true
+ dns_lookup_realm = false
+ dns_lookup_kdc = false
+
+[realms]
+ <%= @kerberosrealm %> = {
+  kdc = <%= @adservers.flatten.join(' ')%>
+  default_domain = <%= @defaultkerberosdomain.downcase %>
+ }
+
+[domain_realm]
+<% @kerberosdomains.each do |kerberosdomain| -%>
+ .<%= kerberosdomain.downcase %> = <%= @kerberosrealm %>
+ <%= kerberosdomain.downcase %> = <%= @kerberosrealm %>
+<% end -%>
+
+[appdefaults]
+ pam = {
+   debug = false
+   ticket_lifetime = 36000
+   renew_lifetime = 36000
+   forwardable = true
+   krb4_convert = false
+ }
+
+[logging]
+ default = FILE:/var/log/krb5libs.log
+ kdc = FILE:/var/log/krb5kdc.log
+ admin_server = FILE:/var/log/kadmind.log

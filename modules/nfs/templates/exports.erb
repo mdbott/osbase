@@ -1,0 +1,4 @@
+<% # Classification: Unclassified (provisional) -%>
+<% @shares.each do |share| -%>
+<%= share %> <%= @share_access.map{|host| host+"(rw)" }.flatten.join(' ') %>
+<% end -%>

@@ -1,0 +1,24 @@
+<% # Classification: Unclassified (provisional) -%>
+backend <%= name %>
+	mode <%= mode %>
+	balance <%= balance %>
+<% if cookie -%>
+	cookie <%= cookie_name %> <%= cookie_options %>
+<% end -%>
+<% if hash_type == 'manual' -%>
+<% servers.each do |server| -%>
+	server <%= server['name'] %> <%= server['ip'] %>:<%= server['port'] || port %><% if server['maxconn'] -%> maxconn <%= server['maxconn'] %><% end -%><% if cookie -%> cookie <%= server['name'] %><% end -%><% if server_check -%> check inter <%= check_inter %> fall <%= check_fall %><% end %>
+<% end -%>
+<% elsif hash_type == 'mcollective' -%>
+<% nodes = Puppet::Util::MongoQuery.instance.find_nodes(query) -%>
+<% nodes.each do |node| -%>
+	server <%= node['facts']['hostname'] %> <%= node['facts']['ipaddress'] %>:<%= port %><% if server_maxconn != "" -%> maxconn <%= server_maxconn %><% end -%><% if cookie -%> cookie <%= node['facts']['hostname'] %><% end -%><% if server_check -%> check inter <%= check_inter %> fall <%= check_fall %><% end %>
+<% end -%>
+<% end -%>
+<% options.each do |option| -%>
+	option <%= option %>
+<% end -%>
+<% if appsession -%>
+	appsession <%= appsession %>
+<% end -%>
+

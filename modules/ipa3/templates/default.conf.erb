@@ -1,0 +1,13 @@
+<% # Classification: Unclassified (provisional) -%>
+# ipa.conf
+# IPA CONFIG FILE
+# This file is being maintained by Puppet.
+# DO NOT EDIT
+
+[global]
+basedn = <%= @basedn %>
+realm = <%= @realm %>
+domain = <%= @domain %>
+server = <%= @server %>
+xmlrpc_uri = https://<%= @server %>/ipa/xml
+enable_ra = True

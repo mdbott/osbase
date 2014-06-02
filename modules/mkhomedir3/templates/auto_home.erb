@@ -1,0 +1,59 @@
+<% # Classification: Unclassified (provisional) -%>
+#!/bin/sh
+#
+# executable automounter map to create a local home directory for users
+#
+# arguments: $1 automount key == username
+#
+# This file is managed by Puppet
+# User changes will be destroyed the next time puppet runs.
+
+user=$1
+
+# Directories used
+skel=/etc/skel
+basedir=/export/home
+target=$basedir/$user
+
+# This function can be customised to do further
+# processing of the new home directory
+fill_new_home_directory()
+{
+home="$1"
+# If you want to do more to the new home directory
+# do it here, writing things to $home
+}
+
+# Validate user
+if /usr/bin/id "$user" > /dev/null 2>&1; then
+  group=`/usr/xpg4/bin/id -g $user`
+else
+  echo "$0: Invalid key '$user': user unknown" >&2
+  exit 1
+fi
+
+# Create in base dir - mount elsewhere
+if [ -d "$target" ]; then
+  /bin/true
+else
+  if [ -d $skel ]; then
+    cp -R $skel "$target"
+  else
+    mkdir "$target"
+  fi
+
+  chown -RP "${user}:${group}" "$target"
+
+  fill_new_home_directory "$target"
+
+  echo "$0: Created new home directory '$target'" >&2
+fi
+
+if [!-d "$target"]; then
+  echo "$0: Could not create directory '$target'" >&2
+  exit 2
+fi
+
+echo "-fstype=lofs :$target"
+
+

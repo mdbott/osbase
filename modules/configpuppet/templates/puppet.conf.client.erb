@@ -1,0 +1,22 @@
+<% # Classification: Unclassified (provisional) -%>
+[main]
+        pluginsync = true
+<% if @operatingsystem == "RedHat" -%>
+        rundir = /var/run/puppet
+<% end -%>
+<% if @has_ruby_ldap -%><% if @has_ruby_ldap == "true" -%>
+        ldapuser = uid=anonymous
+<% if @ldapencrypt == "yes" -%>
+        ldapserver = <%= @firstserver %>
+        ldapport   = 1389
+<% else -%>
+        ldapserver = <%= scope.function_extlookup(['ldapservers'])[2] %>
+<% end -%>
+        ldapbase =  <%= scope.function_extlookup(['base_dn']).gsub(':', ',') %>
+<% end -%><% end -%>
+
+[agent]
+        report = true
+        server = <%= @puppetmaster %>
+        ca_server = <%= @puppetcaserver %>
+        environment = <%= @puppetenv %>

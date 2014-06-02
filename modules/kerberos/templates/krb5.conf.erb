@@ -1,0 +1,42 @@
+<% # Classification: Unclassified (provisional) -%>
+# krb5.conf
+# KERBEROS CONFIG FILE
+# This file is being maintained by Puppet.
+# DO NOT EDIT
+
+[libdefaults]
+        default_realm = <%= @defaultkerberosrealm %>
+<% @libdefaults.sort.each do |option,value| -%>
+        <%= option %> = <%= value %>
+<% end -%>
+
+[realms]
+<% @kerberosrealms.sort.each do |realm,value| -%>
+ <%= realm %> = {
+  kdc = <%= value['kdc'].flatten.join(' ')%>
+<% if value['adminserver'] == 'yes' -%>
+  admin_server = <%= value['adminserver'] %>
+<% end -%>
+<% if value['kpasswd_protocol'] == 'yes' -%>
+  kpasswd_protocol = <%= value['kpasswd_protocol'] %>
+<% end -%>
+}
+<% end -%>
+
+
+[domain_realm]
+<% @kerberosdomains.sort.each do |domain,value| -%>
+ .<%= domain.downcase %> = <%= value['realm'] %>
+ <%= domain.downcase %> = <%= value['realm'] %>
+<% end -%>
+
+[appdefaults]
+<% @appdefaults.sort.each do |app,options| -%>
+ <%= app %> = {
+<% options.sort.each do |option,result| -%>
+   <%= option %> = <%= result %>
+<% end -%>
+ }
+<% end -%>
+
+

@@ -1,0 +1,20 @@
+<% # Classification: Unclassified (provisional) -%>
+# Managed by puppet
+#
+# Copyright 2003 Sun Microsystems, Inc.  All rights reserved.
+# Use is subject to license terms.
+#
+# ident	"@(#)auto_master	1.8	03/04/28 SMI"
+#
+# Master map for automounter
+#
+#/net		-null
+<% if scope.lookupvar('autofs::automastersource') == "ldap" %>+auto_master
+<% else %>#+auto_master
+<% end -%>
+<% if scope.lookupvar('autofs::directmount') != "none" -%>/-                <%= scope.lookupvar('autofs::directmount') %>
+<% end -%>
+
+<% @automounts.sort.each do |mount,value| -%>
+/<%= mount %> <%= value['autofs_file'] %> <%= value['options'] %>
+<% end -%>

@@ -1,0 +1,37 @@
+<% # Classification: Unclassified (provisional) -%>
+# you probably want to tune these settings
+PassengerStatThrottleRate 120
+RackAutoDetect On
+RailsAutoDetect On
+Listen <%= @ipaddress %>:8140
+LoadModule ssl_module modules/mod_ssl.so
+
+<VirtualHost <%= scope.lookupvar('configpuppet::prodmaster::servername') == 'default' ? scope.lookupvar('::ipaddress') : scope.lookupvar('configpuppet::prodmaster::servername') %>:8140>
+        SSLEngine on
+        SSLProtocol -ALL +SSLv3 +TLSv1
+        SSLCipherSuite ALL:!ADH:RC4+RSA:+HIGH:+MEDIUM:-LOW:-SSLv2:-EXP
+        SSLCertificateFile      <%= scope.lookupvar('configpuppet::prodmaster::publiccertificate') %>
+        SSLCertificateKeyFile   <%= scope.lookupvar('configpuppet::prodmaster::privatekey') %>
+<% if scope.lookupvar('configpuppet::rack::ca_server') == "yes" -%>
+        SSLCertificateChainFile /etc/puppet/ssl/ca/ca_crt.pem
+        SSLCACertificateFile    /etc/puppet/ssl/ca/ca_crt.pem
+<% else -%>
+        SSLCertificateChainFile /etc/puppet/ssl/certs/ca.pem
+        SSLCACertificateFile    /etc/puppet/ssl/certs/ca.pem
+<% end -%>
+        # SSLCARevocationFile     /etc/puppet/ssl/ca/ca_crl.pem
+        SSLVerifyClient optional
+        SSLVerifyDepth  1
+        SSLOptions +StdEnvVars
+        RequestHeader set X-SSL-Subject %{SSL_CLIENT_S_DN}e
+        RequestHeader set X-Client-DN  %{SSL_CLIENT_S_DN}e
+        RequestHeader set X-Client-Verify  %{SSL_CLIENT_VERIFY}e
+        DocumentRoot /etc/puppet/rack/public
+        RackBaseURI /
+        <Directory /etc/puppet/rack>
+                Options None
+                AllowOverride None
+                Order allow,deny
+                allow from all
+        </Directory>
+</VirtualHost>

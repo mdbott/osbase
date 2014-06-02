@@ -1,0 +1,38 @@
+<% # Classification: Unclassified (provisional) -%>
+[domain/default]
+
+ldap_id_use_start_tls = True
+cache_credentials = True
+ldap_search_base = <%= @base_dn %>
+ldap_group_search_base = ou=<%= @ldap_group_container %>,<%= @base_dn %>
+ldap_netgroup_search_base = ou=<%= @ldap_netgroup_container %>,<%= @base_dn %>
+ldap_sudo_search_base = ou=SUDOERS,ou=Authorisation,<%= @base_dn %>
+id_provider = ldap
+auth_provider = ldap
+chpass_provider = ldap
+sudo_provider = ldap
+ldap_uri =  <%= @ldap_servers.map{|ldapserver| @ldap_uri + ldapserver}.flatten.join(',') %>
+ldap_tls_cacertdir = /etc/openldap/cacerts
+
+ldap_schema = rfc2307
+enumerate = true
+ldap_chpass_update_last_change = true
+<% if @fallback_to_local_users then -%>
+ldap_rfc2307_fallback_to_local_users = true
+<% end -%>
+
+[sssd]
+config_file_version = 2
+services = nss, pam, sudo
+#services = nss, pam, autofs
+domains = default
+debug_level = 2
+
+[nss]
+
+[pam]
+
+#[autofs]
+
+
+
