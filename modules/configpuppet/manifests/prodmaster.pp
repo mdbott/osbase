@@ -51,9 +51,9 @@ class configpuppet::prodmaster( $certname        = 'default',
       ensure => installed,
       provider => $configpuppet::params::pkg_provider,
   }
-  include httpd
-  include httpd::puppetpassenger
-  include httpd::mod_ssl
+  include apache
+  #include httpd::puppetpassenger
+  #include httpd::mod_ssl
   class {'configpuppet::rack': ca_server  => $ca_server }
 
 

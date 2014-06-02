@@ -18,7 +18,6 @@ class profile::osbase(
 }
 class profile::os_monitoring {
   class {'pkg_management': stage => pre4 }
-  include snare
   include xymon
 }
 

@@ -4,4 +4,4 @@
 # so this manifest must be complete with respect to module dependencies.
 import "/etc/puppet/manifests/init.pp"
 # include stages
-include module_template
+#include module_template

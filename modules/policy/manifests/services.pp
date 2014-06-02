@@ -39,15 +39,15 @@ class policy::services {
     case $systemprofiles {
       /mailserver/: {
         #service {'postfix' : ensure => 'running',enable => 'true',}
-        class {'postfix::server':  enabled => 'true'}
+        #class {'postfix::server':  enabled => 'true'}
       }
       /nomail/: {
         #service {'postfix' : ensure => 'stopped',enable => 'false',}
-        class {'postfix::client::service':  enabled => 'false'}
+        #class {'postfix::client::service':  enabled => 'false'}
       }
       default : {
         #service {'postfix' : ensure => 'running',enable => 'true',}
-        class {'postfix::client':  enabled => 'true'}
+        #class {'postfix::client':  enabled => 'true'}
       }
     }
   }

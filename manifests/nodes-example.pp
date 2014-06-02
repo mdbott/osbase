@@ -10,7 +10,6 @@ node exampledev  {
   include profile::os::monitoring
   include profile::os::auditing
   include profile::os::puppet
-  include profile::os::essentials
   configpuppet::system_facts {'exampleapp':
     env          => 'development',
     location     => 'R5-1',

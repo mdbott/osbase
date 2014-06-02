@@ -56,7 +56,7 @@ class profile::os::redhat::ldaps(
       sudo_provider                   => 'ldap',
       ldap_uri                        => inline_template("<%= @servers.map{|server| @ldapuri + server}.flatten.join(',') %>"),
       ldap_search_base                => $profile::os::ldap::basedn,
-      ldap_id_use_start_tls           => 'true',
+      ldap_id_use_start_tls           => true,
       ldap_tls_reqcert                => $lsbmajdistrelease ? {
                                           "5"  => "never",
                                           default => undef

@@ -21,7 +21,7 @@ node baseldapnode_nopuppet inherits basenode {
   class {'pam':      stage => pre5, authentication => 'ldap' }
   class {'ldap': stage => pre5}
   class {'autofs':   stage => pre5}
-  class {'admin_users':             auth => 'ldap'}
+
 }
 
 node baseldapnode inherits baseldapnode_nopuppet {
@@ -35,7 +35,7 @@ node basewinbindnode inherits basenode {
   class {'nsswitch': stage => pre4, type => 'winbind' }
   class {'pam':      stage => pre5,  authentication => 'winbind'}
   class {'winbind':    stage => pre5 }
-  class {'admin_users': auth => 'winbind'}
+
 }
 
 # Standard Legacy base node + VAS Authentication
@@ -44,7 +44,7 @@ node basevasnode inherits basenode {
   include configpuppet
   class {'nsswitch': stage => pre4, type => 'vas' }
   class {'pam':      stage => pre5,  authentication => 'vas'}
-  class {'admin_users': auth => 'vas'}
+
 }
 
 # Standard Legacy base node + Local Authentication
@@ -52,7 +52,7 @@ node baselocalnode inherits basenode {
   include configpuppet
   class {'nsswitch': stage => pre4, type => 'local'}
   class {'pam':                     authentication => 'local'}
-  class {'admin_users':             auth => 'local'}
+
 }
 
 # Standard LDAP base node with Snare & Xymon
@@ -60,7 +60,6 @@ node extldapnode inherits baseldapnode {
   include configpuppet::facts
   include configpuppet::owner_facts
   class {'pkg_management': stage => pre4 }
-  include snare
   include xymon
   include sudo
   sudo::netgroup { 'role-unix-support': ensure   => present,commands => 'ALL',}
@@ -77,7 +76,6 @@ node extlocalnode inherits baselocalnode {
   include configpuppet::facts
   include configpuppet::owner_facts
   class {'pkg_management': stage => pre4 }
-  include snare
   include xymon
   case $::operatingsystem {
       Solaris: { include role::solaris_essentials }
@@ -91,7 +89,6 @@ node divasnode inherits basevasnode {
   include configpuppet::facts
   include configpuppet::owner_facts
   class {'pkg_management': stage => pre4 }
-  include snare
   include xymon
   case $::operatingsystem {
       Solaris: { include role::solaris_essentials }
@@ -105,7 +102,6 @@ node extwinbindnode inherits basewinbindnode {
   include configpuppet::facts
   include configpuppet::owner_facts
   class {'pkg_management': stage => pre4 }
-  include snare
   include xymon
   case $::operatingsystem {
     Solaris: { include role::solaris_essentials }
@@ -125,7 +121,6 @@ node /^.*temp\..*/ inherits baseldapnode_nopuppet {
   include configpuppet::facts
   include configpuppet::owner_facts
   class {'pkg_management': stage => pre4 }
-  include snare
   include xymon
   include sudo
   sudo::netgroup { 'role-unix-support': ensure   => present,commands => 'ALL',}

@@ -9,7 +9,7 @@ class ipa3::join(
 ) {
   include ipa3::params
   exec { 'ipajoin':
-    command => "${ipajoin3::params::joincmd} -s ${server} -b ${basedn}-d -h ${hostname}",
+    command => "${ipa3::params::joincmd} -s ${server} -b ${basedn}-d -h ${hostname}",
     creates => $winbind3::params::secretsfile,
   }
 }

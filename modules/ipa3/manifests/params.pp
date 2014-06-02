@@ -15,21 +15,25 @@ class ipa3::params {
   case $ipa3_conf_ver {
     'Solaris11': {
        $packagename    = [ 'SUNWsshcu', 'SUNWsshdr', 'SUNWsshdu', 'SUNWsshr', 'SUNWsshu' ]
+       $joincmd        = 'ipajoin'
        $configtemplate = 'ipa3/sshd_config.Solaris5.11.erb'
        $servicename    = 'network/ssh'
     }
      'Solaris10': {
        $packagename    = [ 'SUNWsshcu', 'SUNWsshdr', 'SUNWsshdu', 'SUNWsshr', 'SUNWsshu' ]
+       $joincmd        = 'ipajoin'
        $configtemplate = 'ipa3/sshd_config.Solaris5.10.erb'
        $servicename    = 'network/ssh'
     }
     'RedHat5.0': {
       $packagename    = ['ipa-client']
+      $cmdjoin        = 'ipajoin'
       $configtemplate = 'ipa3/sshd_config.RedHat5.0.erb'
       $servicename    = 'sshd'
     }
     'RedHat6.0': {
       $packagename    = ['ipa-client','nss-tools']
+      $joincmd        = 'ipajoin'
       $configtemplate = 'ipa3/default.conf.erb'
       $certfile       = '/etc/pki/nssdb/cert8.db'
       $servicename    = ['messagebus','certmonger']

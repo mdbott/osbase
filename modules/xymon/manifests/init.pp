@@ -38,8 +38,8 @@ class xymon inherits xymon::params {
 
   case $xymon_conf_ver {
     /RedHat.*/    :   { class {'xymon::redhat': } }
-    'Solaris' :   { class {'xymon::solaris10': } }
-    'UNSUPPORTED': {
+    'Solaris'     :   { class {'xymon::solaris10': } }
+    'UNSUPPORTED' : {
       fail("${::operatingsystem}${::operatingsystemrelease} not supported") }
   }
 }
