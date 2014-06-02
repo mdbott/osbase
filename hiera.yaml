@@ -1,10 +1,11 @@
+---
 :backends:
   - eyaml
   - yaml
 :yaml:
   :datadir: "%{settings::manifestdir}/hieradata"
 :eyaml:
-  datadir: "%{settings::manifestdir}/hieradata"
+  :datadir: "%{settings::manifestdir}/hieradata"
   :pkcs7_private_key: /etc/puppet/secure/keys/private_key.pkcs7.pem
   :pkcs7_public_key: /etc/puppet/secure/keys/public_key.pkcs7.pem
 :hierachy:
@@ -20,7 +21,7 @@
   - "os/%{operatingsystem}"
   - "owner/%{os_owner}"
   - "owner/%{security_owner}"
-  - "owner/%{vendor_owner}
+  - "owner/%{vendor_owner}"
   - common
   
-  :merge_behavior: deeper
+:merge_behavior: deeper
