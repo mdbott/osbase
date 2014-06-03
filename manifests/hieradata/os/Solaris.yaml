@@ -1,0 +1,23 @@
+---
+classification: Unclassified (provisional)
+nscd::enabledcaches:
+  - audit_user
+  - auth_attr
+  - bootparams
+  - ethers
+  - exec_attr
+  - group
+  - hosts
+  - ipnodes
+  - netmasks
+  - networks
+  - passwd
+  - printers
+  - prof_attr
+  - project
+  - protocols
+  - rpc
+  - services
+  - tnrhdb
+  - tnrhtp
+  - user_attr

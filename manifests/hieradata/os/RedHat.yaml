@@ -1,0 +1,7 @@
+---
+classification: Unclassified (provisional)
+nscd::enabledcaches:
+  - passwd
+  - group
+  - hosts
+  - services

@@ -52,15 +52,15 @@ class xymon::redhat inherits xymon::params {
   }
 
   case $raidtype {
-    hphwraid: {
-       include hputils::packages
-       xymon::client_module { 'raid' :
-        cmd => 'hphwraid.sh',
-        cmd_base => "${xymon::params::xymon_home}/ext",
-        source   => "puppet:///modules/xymon/hphwraid.sh",
-        log_file => 'raidCtlr.log',
-      }
-    }
+#    hphwraid: {
+#       include hputils::packages
+#       xymon::client_module { 'raid' :
+#        cmd => 'hphwraid.sh',
+#        cmd_base => "${xymon::params::xymon_home}/ext",
+#        source   => "puppet:///modules/xymon/hphwraid.sh",
+#        log_file => 'raidCtlr.log',
+#      }
+#    }
     swraid: {
       xymon::client_module{ 'raid':
         cmd      => 'raid.pl',

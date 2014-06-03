@@ -1,0 +1,28 @@
+---
+classification: Unclassified (provisional)
+admin_users3::adminusers:
+  exuser1:
+    ensure: present
+    uid: 1000
+    gid: support
+    comment: "Example User 1"
+    sudocommand: ALL
+    managehome: true
+    groups: unixadm
+    type: ssh-dss
+    key:  "sshkey"
+  exuser2:
+    ensure: present
+    uid: 2000
+    gid: support
+    comment: "Example User 1"
+    managehome: true
+    groups: unixadm
+    sudocommand: ALL
+    type: ssh-rsa
+    key: "sshkey2"
+admin_users3::admingroups:
+  support:
+    gid: 1000
+  unixadm:
+    gid: 1002

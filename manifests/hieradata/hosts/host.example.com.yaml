@@ -1,0 +1,30 @@
+---
+classification: Unclassified (provisional)
+profile::os::base::accountsource: ldap
+profile::os::base::homedirsource: autofs
+profile::os::ldap::encrypted: true
+profile::os::ldap::servers:
+  - ldap1.example.com
+  - ldap3.example.com
+pam3::config::systemauth::pam_entries:
+  /etc/pam.d/system-auth-ac_pass_unix:
+    target: /etc/pam.d/system-auth-ac
+    type: password
+    control: sufficient
+    modulepath: pam_unix.so
+    moduleargs: try_first_pass
+    priority: 250
+pam3::config::passwordauth::pam_entries:
+  /etc/pam.d/password-auth-ac_pass_unix:
+    target: /etc/pam.d/password-auth-ac
+    type: password
+    control: sufficient
+    modulepath: pam_unix.so
+    moduleargs: try_first_pass
+    priority: 250
+  passwordauth_auth_fprintd:
+    target: /etc/pam.d/password-auth-ac
+    type: auth
+    control: sufficient
+    modulepath: pam_fprintd.so
+    priority: 105

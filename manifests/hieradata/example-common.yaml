@@ -1,0 +1,62 @@
+---
+classification: Unclassified (provisional)
+ntpservers:
+  - ntp1.example.com
+  - ntp2.example.com
+  - ntp3.example.com
+dns3::nameservers:
+  - 1.2.3.4
+  - 1.2.3.5
+  - 1.2.3.6
+sshd3::sshrootlogin: "no"
+sshd3::sshtcpforward: "no"
+sshd3::sshx11forward: "no"
+ldapservers:
+  - ldap.example.com
+  - ldap3.example.com
+  - ldap4.example.com
+  - ldap5.example.com
+base_dn: "ou=DSD,o=IC,c=au"
+ldapprofile: ssde
+ldapcachettl: 0
+useldapprofile: no
+ldapbindpassword: '{NS1}sldklaw'
+ldapcertname: EXAMPLECA4.pem
+ldapservertype: Solaris
+ldaphomedir: autofs
+environment: testing
+puppetmaster: puppet.example.dsd
+puppetcaserver: puppet.example.com
+puppetmasterversion: installed
+automastersource: ldap
+reposerver: repo.example.com
+opencswpath: /opencsw/unstable
+snareserver: snare.example.com
+hobbitserver: 1.2.3.7
+nfs4domain: example.com
+raidtype: swraid
+sshrootlogin: no
+sshtcpforward: no
+sshx11forward: no
+puppet_package_version: installed
+puppetservice: running
+directmount: none
+accesscontrol: true
+clustersystem: false
+ldaptype: old
+ldapencrypt: no
+repolist:
+  - base
+  - extra
+  - corporate
+  - monitoring
+systemprofile: standard
+rsyslogaudit: false
+rsyslogauditserver: rsyslog.example.com
+rsyslogtransport: relp
+mailserver: smtp.dsd
+snare_watchfiles:
+snareversion: present
+satellite3::satelliteurl: "http://satellite.example.com"
+satellite3::environment: unmanaged
+satellite3::usesatellite: true

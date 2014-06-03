@@ -1,0 +1,9 @@
+# Python bytecode:
+syntax: glob
+
+
+# git directories
+.git
+
+# project directories
+.project
