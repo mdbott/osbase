@@ -1,6 +1,6 @@
 # == Classification: Unclassified (provisional)
 
-class policy::motd ($org = 'dsd') {
+class policy::motd ($org='default') {
 
   $file_location = 'puppet:///modules/policy'
 

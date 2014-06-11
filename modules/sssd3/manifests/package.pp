@@ -2,8 +2,7 @@
 #
 class sssd3::package {
   
-  package { 'sssd':
+  package { $sssd3::params::packagename:
     ensure => present,
-    name   => $sssd3::params::packagename,
   }
 }

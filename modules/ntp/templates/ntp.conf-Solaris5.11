@@ -7,6 +7,6 @@
 # We get our time from permit, kronos and dominion
 # (Future enhancement - turn on authentication)
 #
-<% @ntp_server_list.each do |server| -%>
+<% @servers.each do |server| -%>
 server <%= server %>
 <% end -%>

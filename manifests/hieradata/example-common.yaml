@@ -16,16 +16,16 @@ ldapservers:
   - ldap3.example.com
   - ldap4.example.com
   - ldap5.example.com
-base_dn: "ou=DSD,o=IC,c=au"
+base_dn: "ou=EXAMPLE,ou=COM"
 ldapprofile: ssde
 ldapcachettl: 0
 useldapprofile: no
-ldapbindpassword: '{NS1}sldklaw'
+ldapbindpassword: '{NS1}'
 ldapcertname: EXAMPLECA4.pem
 ldapservertype: Solaris
 ldaphomedir: autofs
 environment: testing
-puppetmaster: puppet.example.dsd
+puppetmaster: puppet.example.com
 puppetcaserver: puppet.example.com
 puppetmasterversion: installed
 automastersource: ldap
@@ -54,7 +54,7 @@ systemprofile: standard
 rsyslogaudit: false
 rsyslogauditserver: rsyslog.example.com
 rsyslogtransport: relp
-mailserver: smtp.dsd
+mailserver: smtp.example.com
 snare_watchfiles:
 snareversion: present
 satellite3::satelliteurl: "http://satellite.example.com"

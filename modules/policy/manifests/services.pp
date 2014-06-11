@@ -1,6 +1,8 @@
 # == Classification: Unclassified (provisional)
 
-class policy::services {
+class policy::services(
+  $systemprofiles = [],
+) {
 
    # Configure redhat systems to ensure that listed services are removed
    $policy_services_ver = "${::operatingsystem}${::operatingsystemrelease}"
@@ -13,7 +15,6 @@ class policy::services {
     }
   }
 
-  $systemprofiles = split(extlookup("systemprofile"),':')
   
   # NFS policy
   # Currently only RHEL6 systems

@@ -58,7 +58,11 @@ define sudo3::line (
   $hosts    = 'ALL',
   $linetype
 ) {
-  file { "${sudo3::params::fragment_dir}/${linetype}-${name}":
+  # Workaround for names containing dots being ignored by sudo
+
+  $fixedname = inline_template("<%= @name.gsub('.','_') %>")
+
+  file { "${sudo3::params::fragment_dir}/${linetype}-${fixedname}":
     ensure  => $ensure,
     content => template("sudo3/line.erb"),
     owner   => 'root',

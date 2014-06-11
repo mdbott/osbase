@@ -36,13 +36,13 @@
 #
 # SSU
 #
-class autofs ($automounts = {}
+class autofs (
+  $automounts = {},
+  $basedn=undef,
+  $automastersource=undef,
+  $directmount=undef 
     ) {
   require autofs::params
-  $base_dn_array = split(extlookup('base_dn'),':')
-  $automastersource = extlookup('automastersource')
-  $base_dn = inline_template("<%= @base_dn_array.flatten.join(',') %>")
-  $directmount = extlookup('directmount')
 
   Class['nfs::client'] -> Class['autofs']
 

@@ -7,7 +7,7 @@ class kerberos::service(
     include kerberos::params
     if $krbuser != '' {
       exec { 'kinit':
-        command => "echo ${krbpassword} | ${kerberos::params::kinitcmd} ${krbuser}",
+        command => "/bin/echo ${krbpassword} | ${kerberos::params::kinitcmd} ${krbuser}",
         creates => $kerberos::params::keytab,
       }
     }

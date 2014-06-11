@@ -1,6 +1,8 @@
 # == Classification: Unclassified (provisional)
 #
-class nfs::params {
+class nfs::params(
+  $domain="${::domain}"
+) {
 
   $nfs_conf_ver = "${::operatingsystem}${::operatingsystemrelease}" ? {
     'Solaris5.10'  => 'Solaris5.10',
@@ -16,7 +18,6 @@ class nfs::params {
     fail("Version ${::operatingsystemrelease} of ${::operatingsystem} is not explicitly supported")
   }
 
-  $nfs4domain   = extlookup("nfs4domain")
   $nfs_cfg_header = "# This file is managed by Puppet.\n# User changes will be destroyed the next time puppet runs.\n"
 
   case $nfs_conf_ver {

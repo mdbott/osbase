@@ -3,9 +3,9 @@
   - eyaml
   - yaml
 :yaml:
-    :datadir: "%{settings::manifestdir}/hieradata"
+    :datadir: /etc/puppet/environments/%{::environment}/manifests/hieradata/
 :eyaml:
-    :datadir: "%{settings::manifestdir}/hieradata"
+    :datadir: /etc/puppet/environments/%{::environment}/manifests/hieradata/
     :pkcs7_private_key: /etc/puppet/secure/keys/private_key.pkcs7.pem
     :pkcs7_public_key: /etc/puppet/secure/keys/public_key.pkcs7.pem
 :hierarchy:

@@ -15,7 +15,7 @@ class nfs::solaris10client(
       name => $nfs::params::nfs_package,
     }
 
-    $nfs4domain = $nfs::params::nfs4domain
+    $nfs4domain = $nfs::params::domain
 
     file { '/etc/default/nfs':
       ensure  => 'file',

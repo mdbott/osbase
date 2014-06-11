@@ -1,6 +1,8 @@
 # == Classification: Unclassified (provisional)
 
-class policy::security {
+class policy::security(
+  $selinuxstatus='disabled'
+) {
 
   # Configure solaris systems to default to linux md5 hashes  for password
   if $::operatingsystem == 'Solaris' {
@@ -14,7 +16,6 @@ class policy::security {
   }
 
   # Ensure selinux is disabled right now & on boot
-  $selinuxstatus      = extlookup("selinuxstatus")
   if $::operatingsystem == 'RedHat' or $::operatingsystem == 'CentOS' {
     file { '/etc/selinux/config':
         content => template("policy/selinux_config"),

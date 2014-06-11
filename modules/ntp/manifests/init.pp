@@ -29,10 +29,11 @@
 #
 # SSU
 #
-class ntp {
+class ntp (
+  $servers,
+  $clustersystem='false'
+){
   require ntp::params
-  $ntp_server_list = extlookup("ntpservers")
-  $cluster_system = extlookup("clustersystem")
 
   package { 'ntp':
     ensure => installed,
@@ -41,7 +42,7 @@ class ntp {
 
   file { 'ntp.conf':
     path    => $ntp::params::ntp_configfile,
-    content => $cluster_system ? {
+    content => $clustersystem ? {
       'true'  => template("ntp/ntp.conf-${ntp::params::ntp_conf_version}.cluster"),
       'false' => template("ntp/ntp.conf-${ntp::params::ntp_conf_version}"),
     },

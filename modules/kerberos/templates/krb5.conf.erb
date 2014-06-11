@@ -14,10 +14,10 @@
 <% @kerberosrealms.sort.each do |realm,value| -%>
  <%= realm %> = {
   kdc = <%= value['kdc'].flatten.join(' ')%>
-<% if value['adminserver'] == 'yes' -%>
-  admin_server = <%= value['adminserver'] %>
+<% if value['adminserver'] -%>
+  admin_server = <%= value['adminserver'].flatten.join(' ') %>
 <% end -%>
-<% if value['kpasswd_protocol'] == 'yes' -%>
+<% if value['kpasswd_protocol'] -%>
   kpasswd_protocol = <%= value['kpasswd_protocol'] %>
 <% end -%>
 }
@@ -30,6 +30,7 @@
  <%= domain.downcase %> = <%= value['realm'] %>
 <% end -%>
 
+<% if @appdefaults -%>
 [appdefaults]
 <% @appdefaults.sort.each do |app,options| -%>
  <%= app %> = {
@@ -37,6 +38,7 @@
    <%= option %> = <%= result %>
 <% end -%>
  }
+<% end -%>
 <% end -%>
 
 

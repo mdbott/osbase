@@ -27,7 +27,7 @@ restrict 127.0.0.1
 
 # restrict mytrustedtimeserverip mask 255.255.255.255 nomodify notrap noquery
 # server mytrustedtimeserverip
-<% @ntp_server_list.each do |server| -%>
+<% @servers.each do |server| -%>
 server <%= server %>
 <% end -%>
 

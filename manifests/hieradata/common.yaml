@@ -1,0 +1,54 @@
+---
+profile::os::base::accountsource: ad
+profile::os::ad::kerberosrealm: EXAMPLE.COM
+profile::os::ad::domain: example.com
+profile::os::ad::username: admin
+profile::os::ad::password: test
+profile::os::ad::servers:
+  - ad.example.com
+  - ad2.example.com
+profile::os::base::homedirsource: local
+profile::os::base::accesscontrol: false
+kerberos::kerberosrealms:
+  EXAMPLE.COM:
+    kdc:
+      - ad.example.com
+      - ad2.example.com
+    admin_server:
+      - ad.example.com
+      - ad2.example.com
+kerberos::libdefaults:
+  dns_lookup_realm: "false"
+  dns_lookup_kdc: "false"
+  ticket_lifetime: "24h"
+  renew_lifetime: "7d"
+  forwardable: "true"
+  allow_weak_crypto: "true"
+kerberos::kerberosdomains:
+  EXAMPLE.COM:
+    realm: EXAMPLE.COM
+kerberos::defaultkerberosrealm: EXAMPLE.COM
+autofs:automounts:
+  home:
+    autofs_file: "/etc/auto.home"
+    options: ""
+classification: Unclassified (provisional)
+ntp::servers:
+  - 1.2.3.4
+  - 5.6.7.8
+dns3::nameservers:
+  - 1.2.3.4
+  - 5.6.7.8
+sshd3::sshrootlogin: "no"
+sshd3::sshtcpforward: "no"
+sshd3::sshx11forward: "no"
+policy::security::selinuxstatus: "disabled"
+policy::services::systemprofiles:
+  - default
+configpuppet::client::puppetenv: "test_development"
+configpuppet::client::puppetmaster: "pm1.example.com"
+configpuppet::client::puppetservice: "running"
+configpuppet::client::puppetcaserver: "pm1.example.com"
+configpuppet::client::packageversion: "latest"
+configpuppet::client::facterversion: "latest"
+configpuppet::client::forgeserver: "forge.example.com"

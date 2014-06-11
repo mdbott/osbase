@@ -43,7 +43,7 @@
 #
 class kerberos(
   $libdefaults,
-  $appdefaults,
+  $appdefaults=undef,
   $defaultkerberosrealm,
   $kerberosrealms,
   $kerberosdomains,

@@ -8,7 +8,7 @@
 # Define filebucket 'main':
 if $::puppetversion =~ /.*Puppet Enterprise 3.*/ {
   filebucket { 'main':
-    server => 'puppet.itsupt.defence.ic.gov.au',
+    server => 'puppet',
     path   => false,
   }
 
@@ -17,7 +17,7 @@ if $::puppetversion =~ /.*Puppet Enterprise 3.*/ {
 }
 
 
-# Site info for DSD
+# Site info 
 $extlookup_datadir = "${settings::manifestdir}/extlookup"
 #$extlookup_datadir = "/etc/puppet/environments/$environment/manifests/extlookup" Reverted as it breaks standalone mode
 $extlookup_precedence = ["hosts/%{fqdn}","systems/%{system}_%{env}","systems/%{system}","domain_%{domain}","common" ]
